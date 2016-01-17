@@ -1,8 +1,8 @@
 //
 //  AppDelegate.swift
-//  Bug Hunt
+//  SpriteKitSimpleGame
 //
-//  Created by Eddie Lee on 17/01/2016.
+//  Created by Eddie Lee on 15/01/2016.
 //  Copyright © 2016 Eddie Lee. All rights reserved.
 //
 
