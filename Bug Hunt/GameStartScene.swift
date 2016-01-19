@@ -6,17 +6,11 @@
 //  Copyright © 2016 Eddie Lee. All rights reserved.
 //
 
-import Foundation
 import SpriteKit
 
 class GameStartScene: SKScene {
     
-    var screenSize: CGSize;
-    
-    override init(size: CGSize) {
-        screenSize = size
-        
-        super.init(size: screenSize)
+    override func didMoveToView(view: SKView) {
         backgroundColor = SKColor.blackColor()
         
         let startLabel = SKLabelNode(fontNamed: "SanFrancisco")
@@ -36,12 +30,8 @@ class GameStartScene: SKScene {
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         runAction(SKAction.runBlock() {
             let reveal = SKTransition.doorwayWithDuration(0.5)
-            let scene = GameScene(size: self.screenSize)
+            let scene = GameScene(size: self.size)
             self.view?.presentScene(scene, transition:reveal)
         })
-    }
-    
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }

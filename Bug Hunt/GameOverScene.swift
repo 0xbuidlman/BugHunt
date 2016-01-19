@@ -6,21 +6,16 @@
 //  Copyright © 2016 Eddie Lee. All rights reserved.
 //
 
-import Foundation
 import SpriteKit
 
 class GameOverScene: SKScene {
     
-    var screenSize: CGSize
+    var gameScore: Int!
     
-    init(size: CGSize, gameStats: GameStats) {
-        screenSize = size
-        
-        super.init(size: screenSize)
-        
+    override func didMoveToView(view: SKView) {
         let previousHighScore = getHighScore()
-        
-        storeHighScore(gameStats.calculateScore())
+                
+        storeHighScore(gameScore)
         let currentHighScore = getHighScore()
         
         backgroundColor = SKColor.blackColor()
@@ -28,9 +23,9 @@ class GameOverScene: SKScene {
         let scoreLabel = SKLabelNode(fontNamed: "SanFrancisco")
         
         if (currentHighScore > previousHighScore) {
-            scoreLabel.text = "New High Score: \(gameStats.calculateScore())!!"
+            scoreLabel.text = "New High Score: \(gameScore)!!"
         } else {
-            scoreLabel.text = "Score: \(gameStats.calculateScore()) High Score: \(currentHighScore)"
+            scoreLabel.text = "Score: \(gameScore) High Score: \(currentHighScore)"
         }
         
         scoreLabel.fontSize = 30
@@ -55,7 +50,7 @@ class GameOverScene: SKScene {
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
         runAction(SKAction.runBlock() {
             let reveal = SKTransition.doorwayWithDuration(0.5)
-            let scene = GameScene(size: self.screenSize)
+            let scene = GameScene(size: self.size)
             self.view?.presentScene(scene, transition:reveal)
         })
     }
@@ -77,9 +72,5 @@ class GameOverScene: SKScene {
         }
         
         return 0
-    }
-    
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 }

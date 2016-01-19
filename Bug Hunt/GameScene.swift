@@ -146,7 +146,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func gameOver() {
         let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
-        let gameOverScene = GameOverScene(size: self.size, gameStats: self.gameStats)
+        let gameOverScene = GameOverScene(size: self.size)
+        gameOverScene.gameScore = gameStats.calculateScore()
         self.view?.presentScene(gameOverScene, transition: transition)
     }
     
