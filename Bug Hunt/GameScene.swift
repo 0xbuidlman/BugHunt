@@ -54,7 +54,7 @@ struct GameStats {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    let player = SKSpriteNode(imageNamed: "player")
+    let player = SKSpriteNode(imageNamed: "Player")
     
     var gameStats = GameStats()
     
@@ -112,13 +112,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Pick a bug type
         switch MonsterType.randomType() {
         case .Fast:
-            bugSprite = SKSpriteNode(imageNamed: "fast-bug")
+            bugSprite = SKSpriteNode(imageNamed: "FastBug")
             bugTimeToRun = 2
         case .Medium:
-            bugSprite = SKSpriteNode(imageNamed: "medium-bug")
+            bugSprite = SKSpriteNode(imageNamed: "MediumBug")
             bugTimeToRun = 3
         case .Slow:
-            bugSprite = SKSpriteNode(imageNamed: "slow-bug")
+            bugSprite = SKSpriteNode(imageNamed: "SlowBug")
             bugTimeToRun = 4
         }
         
@@ -165,7 +165,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
-        let projectile = SKSpriteNode(imageNamed: "projectile")
+        let projectile = SKSpriteNode(imageNamed: "Projectile")
         projectile.position = player.position
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
         projectile.physicsBody?.dynamic = true
