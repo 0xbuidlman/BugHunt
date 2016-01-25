@@ -21,10 +21,8 @@ class GameStartScene: SKScene {
         startLabel.position = CGPoint(x: size.width/2, y: size.height/2)
         addChild(startLabel)
         
-        let growAction = SKAction.scaleBy(1.2, duration: 0.4)
-        let shrinkAction = SKAction.scaleBy(0.8333, duration: 0.4)
-        let growAndShrink = SKAction.sequence([growAction, shrinkAction])
-        startLabel.runAction(SKAction.repeatActionForever(growAndShrink))
+
+        startLabel.runAction(SKAction.repeatActionForever(SKAction(named: "Pulsate")!))
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {

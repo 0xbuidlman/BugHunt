@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2C13FD6A1C5677A000D79A5A /* MyActions.sks in Resources */ = {isa = PBXBuildFile; fileRef = 2C13FD691C5677A000D79A5A /* MyActions.sks */; };
 		2C71B0401C4C32F400524D50 /* CGPointExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */; };
 		2C71B0411C4C32F400524D50 /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C71B03D1C4C32F400524D50 /* GameOverScene.swift */; };
 		2C71B0421C4C32F400524D50 /* GameStartScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C71B03E1C4C32F400524D50 /* GameStartScene.swift */; };
@@ -19,6 +20,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2C13FD691C5677A000D79A5A /* MyActions.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = MyActions.sks; sourceTree = "<group>"; };
 		2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGPointExtension.swift; sourceTree = "<group>"; };
 		2C71B03D1C4C32F400524D50 /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
 		2C71B03E1C4C32F400524D50 /* GameStartScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameStartScene.swift; sourceTree = "<group>"; };
@@ -72,6 +74,7 @@
 				2C7267C41C4C30C3003BBBC8 /* Assets.xcassets */,
 				2C7267C61C4C30C3003BBBC8 /* LaunchScreen.storyboard */,
 				2C7267C91C4C30C3003BBBC8 /* Info.plist */,
+				2C13FD691C5677A000D79A5A /* MyActions.sks */,
 			);
 			path = "Bug Hunt";
 			sourceTree = "<group>";
@@ -137,6 +140,7 @@
 				2C7267C81C4C30C3003BBBC8 /* LaunchScreen.storyboard in Resources */,
 				2C7267C51C4C30C3003BBBC8 /* Assets.xcassets in Resources */,
 				2C7267C31C4C30C3003BBBC8 /* Main.storyboard in Resources */,
+				2C13FD6A1C5677A000D79A5A /* MyActions.sks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
