@@ -2,16 +2,17 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "medium-bug.png",
+      "filename" : "Web-30.png",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
-      "filename" : "medium-bug@2x.png",
+      "filename" : "Web-60.png",
       "scale" : "2x"
     },
     {
       "idiom" : "universal",
+      "filename" : "Web-90.png",
       "scale" : "3x"
     }
   ],

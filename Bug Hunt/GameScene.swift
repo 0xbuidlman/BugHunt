@@ -7,6 +7,7 @@
 //
 
 import SpriteKit
+import GameplayKit
 
 struct SpriteType {
     static let None: UInt32 = 0
@@ -54,11 +55,11 @@ struct GameStats {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    let player = SKSpriteNode(imageNamed: "Player")
+    let player = SKSpriteNode(imageNamed: "Spider")
     
     var gameStats = GameStats()
     
-    let scoreLabel = SKLabelNode(fontNamed: "SanFrancisco")
+    let scoreLabel = SKLabelNode()
     
     override func didMoveToView(view: SKView) {
         // No gravity
@@ -90,21 +91,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ))
     }
     
-//    func getSpawnDelay() -> Double {
-//        let baseSpawnDelay = 1.5
-//        let minSpawnDelay = 0.5
-//        
-//        // Speed up the more you kill (between 0.5 and 1.5)
-//        let spawnDelayModifier = Double(self.gameStats.monstersKilled/10) * 0.1
-//        var spawnDelay = baseSpawnDelay - spawnDelayModifier
-//        
-//        if (spawnDelay < minSpawnDelay) {
-//            spawnDelay = minSpawnDelay
-//        }
-//        
-//        return spawnDelay
-//    }
-    
     func addMonster() {
         let bugSprite: SKSpriteNode
         let bugTimeToRun: CGFloat
@@ -112,13 +98,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Pick a bug type
         switch MonsterType.randomType() {
         case .Fast:
-            bugSprite = SKSpriteNode(imageNamed: "FastBug")
+            bugSprite = SKSpriteNode(imageNamed: "Wasp")
             bugTimeToRun = 2
         case .Medium:
-            bugSprite = SKSpriteNode(imageNamed: "MediumBug")
+            bugSprite = SKSpriteNode(imageNamed: "Fly")
             bugTimeToRun = 3
         case .Slow:
-            bugSprite = SKSpriteNode(imageNamed: "SlowBug")
+            bugSprite = SKSpriteNode(imageNamed: "LadyBird")
             bugTimeToRun = 4
         }
         
@@ -165,7 +151,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
-        let projectile = SKSpriteNode(imageNamed: "Projectile")
+        let projectile = SKSpriteNode(imageNamed: "Web")
         projectile.position = player.position
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
         projectile.physicsBody?.dynamic = true
