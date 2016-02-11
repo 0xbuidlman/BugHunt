@@ -137,13 +137,30 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.view?.presentScene(gameOverScene, transition: transition)
     }
     
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        
+    func playerFace(point: CGPoint) {
+        let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
+        player.constraints = [rotateConstraint]
+    }
+    
+    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
         
         let touchLocation = touch.locationInNode(self)
+        
+        playerFace(touchLocation)
+    }
+    
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        guard let touch = touches.first else {
+            return
+        }
+        
+        let touchLocation = touch.locationInNode(self)
+        
+        playerFace(touchLocation)
+        
         let touchOffset = touchLocation - player.position
         
         // Can't shoot backwards
