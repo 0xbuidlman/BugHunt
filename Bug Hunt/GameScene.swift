@@ -62,8 +62,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let scoreLabel = SKLabelNode()
     
     override func didMoveToView(view: SKView) {
-        // No gravity
-        physicsWorld.gravity = CGVectorMake(0, 0)
         physicsWorld.contactDelegate = self
         
         backgroundColor = SKColor(red: 117/255.0, green: 223/255.0, blue: 36/255.0, alpha: 1)
