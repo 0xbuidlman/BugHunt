@@ -55,60 +55,31 @@ struct GameStats {
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-    let player = SKSpriteNode(imageNamed: "Spider")
+    var player: SKSpriteNode!
+    var scoreLabel: SKLabelNode!
     
     var gameStats = GameStats()
     
-    let scoreLabel = SKLabelNode()
+    
     
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
         
-        addBackground()
+        setupLayout()
         
-        // Player
-        player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
-        player.zPosition = 10
-        addChild(player)
-        
-        // Score
-        scoreLabel.text = "Score: \(gameStats.calculateScore())"
-        scoreLabel.horizontalAlignmentMode = .Left
-        scoreLabel.fontSize = 25
-        scoreLabel.fontColor = SKColor.blackColor()
-        scoreLabel.position = CGPoint(x: 10, y: size.height - 35)
-        scoreLabel.zPosition = 10
-        addChild(scoreLabel)
-        
-        // Start the game
-        runAction(SKAction.repeatActionForever(
-            SKAction.sequence([
-                SKAction.runBlock(addMonster),
-                SKAction.waitForDuration(1)
-            ])
-        ))
+//        runAction(SKAction.repeatActionForever(
+//            SKAction.sequence([
+//                SKAction.runBlock(addMonster),
+//                SKAction.waitForDuration(1)
+//            ])
+//        ))
     }
     
-//    func addBackground() {
-//        if let image = UIImage(named: "grass") {
-//            
-//            let textureSize = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
-//            
-//            UIGraphicsBeginImageContext(size)
-//            let context = UIGraphicsGetCurrentContext()
-//            CGContextDrawTiledImage(context, textureSize, image.CGImage)
-//            let tiledBackground = UIGraphicsGetImageFromCurrentImageContext()
-//            UIGraphicsEndImageContext()
-//            
-//            let backgroundTexture = SKTexture(CGImage: tiledBackground.CGImage!)
-//            let backgroundSprite = SKSpriteNode(texture: backgroundTexture)
-//            backgroundSprite.zPosition = 0
-//            backgroundSprite.yScale = -1
-//            backgroundSprite.position = CGPoint(x: size.width/2, y: size.height/2)
-//            
-//            addChild(backgroundSprite)
-//        }
-//    }
+    func setupLayout() {
+        addBackground()
+        addPlayer()
+        addScoreLabel()
+    }
     
     func addBackground() {
         let backgroundNode = SKNode()
@@ -133,7 +104,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(backgroundNode)
     }
     
-
+    func addPlayer() {
+        player = SKSpriteNode(imageNamed: "spider")
+        player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
+        player.anchorPoint = CGPoint(x: 0.34, y: 0.5)
+        player.zPosition = 5
+        addChild(player)
+    }
+    
+    func addScoreLabel() {
+        scoreLabel = SKLabelNode()
+        scoreLabel.text = "Score: 0"
+        scoreLabel.horizontalAlignmentMode = .Left
+        scoreLabel.fontSize = 25
+        scoreLabel.fontColor = SKColor.blackColor()
+        scoreLabel.position = CGPoint(x: 10, y: size.height - 35)
+        scoreLabel.zPosition = 10
+        addChild(scoreLabel)
+    }
     
     func addMonster() {
         let bugSprite: SKSpriteNode
@@ -181,8 +169,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.view?.presentScene(gameOverScene, transition: transition)
     }
     
-    func playerFace(point: CGPoint) {
-        let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
+    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        guard let touch = touches.first else {
+            return
+        }
+        
+        let touchLocation = touch.locationInNode(self)
+        
+        
+        let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
         player.constraints = [rotateConstraint]
     }
     
@@ -193,7 +188,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        playerFace(touchLocation)
+        
+        let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
+        player.constraints = [rotateConstraint]
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -203,16 +200,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        playerFace(touchLocation)
-        
         let touchOffset = touchLocation - player.position
         
-        // Can't shoot backwards
-        if (touchOffset.x < 0) {
-            return
-        }
+        let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
+        player.constraints = [rotateConstraint]
         
-        let projectile = SKSpriteNode(imageNamed: "Web")
+        let projectile = SKSpriteNode(imageNamed: "web-shoot")
         projectile.position = player.position
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
         projectile.physicsBody?.dynamic = true
@@ -220,7 +213,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         projectile.physicsBody?.contactTestBitMask = SpriteType.Monster
         projectile.physicsBody?.collisionBitMask = SpriteType.None
         projectile.physicsBody?.usesPreciseCollisionDetection = true
-        projectile.zPosition = 6
+        projectile.zPosition = 4
+        projectile.setScale(0)
+        projectile.runAction(SKAction.sequence([
+            SKAction.runBlock({
+                projectile.constraints = [rotateConstraint]
+            }),
+            SKAction.waitForDuration(0.01),
+            SKAction.runBlock({
+                projectile.constraints = []
+            }),
+            SKAction.scaleTo(1, duration: 0.1)
+        ]))
+        
         addChild(projectile)
         
         gameStats.shotsFired++
