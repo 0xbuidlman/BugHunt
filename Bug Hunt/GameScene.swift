@@ -116,9 +116,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let grassSprite = SKSpriteNode(imageNamed: "grass")
         grassSprite.anchorPoint = CGPoint.zero
         grassSprite.zPosition = 0
-        
-        print("grass size: \(grassSprite.size)")
-        
+                
         let xBlocks = Int(size.width / grassSprite.size.width)
         let yBlocks = Int(size.height / grassSprite.size.height)
         
