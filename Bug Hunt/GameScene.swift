@@ -67,12 +67,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         setupLayout()
         
-//        runAction(SKAction.repeatActionForever(
-//            SKAction.sequence([
-//                SKAction.runBlock(addMonster),
-//                SKAction.waitForDuration(1)
-//            ])
-//        ))
+        runAction(SKAction.repeatActionForever(
+            SKAction.sequence([
+                SKAction.runBlock(addMonster),
+                SKAction.waitForDuration(1)
+            ])
+        ))
     }
     
     func setupLayout() {
@@ -130,13 +130,40 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Pick a bug type
         switch MonsterType.randomType() {
         case .Fast:
-            bugSprite = SKSpriteNode(imageNamed: "Wasp")
-            bugTimeToRun = 2
+            bugSprite = SKSpriteNode(imageNamed: "wasp-move-1")
+            let waspFrames = [
+                SKTexture(imageNamed: "wasp-move-1"),
+                SKTexture(imageNamed: "wasp-move-2"),
+                SKTexture(imageNamed: "wasp-move-3"),
+                SKTexture(imageNamed: "wasp-move-4"),
+                SKTexture(imageNamed: "wasp-move-3"),
+                SKTexture(imageNamed: "wasp-move-2")
+            ]
+            bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(waspFrames, timePerFrame: 0.08)))
+            bugTimeToRun = 4
         case .Medium:
-            bugSprite = SKSpriteNode(imageNamed: "Fly")
-            bugTimeToRun = 3
+            bugSprite = SKSpriteNode(imageNamed: "fly-move-1")
+            let flyFrames = [
+                SKTexture(imageNamed: "fly-move-1"),
+                SKTexture(imageNamed: "fly-move-2"),
+                SKTexture(imageNamed: "fly-move-3"),
+                SKTexture(imageNamed: "fly-move-4"),
+                SKTexture(imageNamed: "fly-move-3"),
+                SKTexture(imageNamed: "fly-move-2")
+            ]
+            bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(flyFrames, timePerFrame: 0.08)))
+            bugTimeToRun = 4
         case .Slow:
-            bugSprite = SKSpriteNode(imageNamed: "LadyBird")
+            bugSprite = SKSpriteNode(imageNamed: "ladybird-move-1")
+            let ladybirdFrames = [
+                SKTexture(imageNamed: "ladybird-move-1"),
+                SKTexture(imageNamed: "ladybird-move-2"),
+                SKTexture(imageNamed: "ladybird-move-3"),
+                SKTexture(imageNamed: "ladybird-move-4"),
+                SKTexture(imageNamed: "ladybird-move-3"),
+                SKTexture(imageNamed: "ladybird-move-2")
+            ]
+            bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(ladybirdFrames, timePerFrame: 0.08)))
             bugTimeToRun = 4
         }
         
@@ -151,13 +178,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let yPosition = random(min: bugSprite.size.height/2, max: size.height - bugSprite.size.height/2)
         let startXPosition = size.width + bugSprite.size.width / 2;
         let endXPosition = 0 - bugSprite.size.width / 2
+        let endPosition = CGPoint(x: endXPosition, y: yPosition)
         bugSprite.position = CGPoint(x: startXPosition, y: yPosition)
         bugSprite.zPosition = 5
+        bugSprite.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
         
         // Add and animate
         addChild(bugSprite)
         bugSprite.runAction(SKAction.sequence([
-            SKAction.moveTo(CGPoint(x: endXPosition, y: yPosition), duration: NSTimeInterval(bugTimeToRun)),
+            SKAction.moveTo(endPosition, duration: NSTimeInterval(bugTimeToRun)),
             SKAction.runBlock() { self.gameOver() }
         ]))
     }
@@ -188,7 +217,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        
         let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
         player.constraints = [rotateConstraint]
     }
@@ -200,15 +228,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        let touchOffset = touchLocation - player.position
-        
-        let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
+        shootWebAtPoint(touchLocation)
+    }
+    
+    func shootWebAtPoint(point: CGPoint) {
+        let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
         player.constraints = [rotateConstraint]
         
         let projectile = SKSpriteNode(imageNamed: "web-shoot")
         projectile.position = player.position
         projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
-        projectile.physicsBody?.dynamic = true
+        projectile.physicsBody?.dynamic = false
         projectile.physicsBody?.categoryBitMask = SpriteType.Projectile
         projectile.physicsBody?.contactTestBitMask = SpriteType.Monster
         projectile.physicsBody?.collisionBitMask = SpriteType.None
@@ -224,13 +254,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 projectile.constraints = []
             }),
             SKAction.scaleTo(1, duration: 0.1)
-        ]))
+            ]))
         
         addChild(projectile)
         
         gameStats.shotsFired++
         updateScore()
         
+        let touchOffset = point - player.position
         let shootDirection = touchOffset.normalized()
         let shootDistance = shootDirection * 1000
         let projectileDestination = shootDistance + projectile.position
