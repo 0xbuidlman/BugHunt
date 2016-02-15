@@ -64,7 +64,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
         
-        backgroundColor = SKColor(red: 117/255.0, green: 223/255.0, blue: 36/255.0, alpha: 1)
+        addBackground()
         
         // Player
         player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
@@ -88,6 +88,54 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ])
         ))
     }
+    
+//    func addBackground() {
+//        if let image = UIImage(named: "grass") {
+//            
+//            let textureSize = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+//            
+//            UIGraphicsBeginImageContext(size)
+//            let context = UIGraphicsGetCurrentContext()
+//            CGContextDrawTiledImage(context, textureSize, image.CGImage)
+//            let tiledBackground = UIGraphicsGetImageFromCurrentImageContext()
+//            UIGraphicsEndImageContext()
+//            
+//            let backgroundTexture = SKTexture(CGImage: tiledBackground.CGImage!)
+//            let backgroundSprite = SKSpriteNode(texture: backgroundTexture)
+//            backgroundSprite.zPosition = 0
+//            backgroundSprite.yScale = -1
+//            backgroundSprite.position = CGPoint(x: size.width/2, y: size.height/2)
+//            
+//            addChild(backgroundSprite)
+//        }
+//    }
+    
+    func addBackground() {
+        let backgroundNode = SKNode()
+        
+        let grassSprite = SKSpriteNode(imageNamed: "grass")
+        grassSprite.anchorPoint = CGPoint.zero
+        grassSprite.zPosition = 0
+        
+        print("grass size: \(grassSprite.size)")
+        
+        let xBlocks = Int(size.width / grassSprite.size.width)
+        let yBlocks = Int(size.height / grassSprite.size.height)
+        
+        for xBlock in 0...xBlocks {
+            for yBlock in 0...yBlocks {
+                let tileNode = grassSprite.copy() as! SKSpriteNode
+                let xPos = grassSprite.size.width * CGFloat(xBlock)
+                let yPos = grassSprite.size.height * CGFloat(yBlock)
+                tileNode.position = CGPoint(x: xPos, y: yPos)
+                backgroundNode.addChild(tileNode)
+            }
+        }
+        
+        addChild(backgroundNode)
+    }
+    
+
     
     func addMonster() {
         let bugSprite: SKSpriteNode
