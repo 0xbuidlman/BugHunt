@@ -22,7 +22,7 @@
 		2C39E0731C710D9E00DC8678 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
 		2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGPointExtension.swift; sourceTree = "<group>"; };
 		2C71B03D1C4C32F400524D50 /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
-		2C7267B61C4C30C3003BBBC8 /* Bug Hunt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Bug Hunt.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C7267B61C4C30C3003BBBC8 /* BugHunt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BugHunt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C7267B91C4C30C3003BBBC8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2C7267BD1C4C30C3003BBBC8 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		2C7267BF1C4C30C3003BBBC8 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -46,7 +46,7 @@
 		2C7267AD1C4C30C3003BBBC8 = {
 			isa = PBXGroup;
 			children = (
-				2C7267B81C4C30C3003BBBC8 /* Bug Hunt */,
+				2C7267B81C4C30C3003BBBC8 /* BugHunt */,
 				2C7267B71C4C30C3003BBBC8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,12 +54,12 @@
 		2C7267B71C4C30C3003BBBC8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2C7267B61C4C30C3003BBBC8 /* Bug Hunt.app */,
+				2C7267B61C4C30C3003BBBC8 /* BugHunt.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2C7267B81C4C30C3003BBBC8 /* Bug Hunt */ = {
+		2C7267B81C4C30C3003BBBC8 /* BugHunt */ = {
 			isa = PBXGroup;
 			children = (
 				2C7267B91C4C30C3003BBBC8 /* AppDelegate.swift */,
@@ -73,15 +73,15 @@
 				2C7267C61C4C30C3003BBBC8 /* LaunchScreen.storyboard */,
 				2C7267C91C4C30C3003BBBC8 /* Info.plist */,
 			);
-			path = "Bug Hunt";
+			path = BugHunt;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2C7267B51C4C30C3003BBBC8 /* Bug Hunt */ = {
+		2C7267B51C4C30C3003BBBC8 /* BugHunt */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2C7267CC1C4C30C3003BBBC8 /* Build configuration list for PBXNativeTarget "Bug Hunt" */;
+			buildConfigurationList = 2C7267CC1C4C30C3003BBBC8 /* Build configuration list for PBXNativeTarget "BugHunt" */;
 			buildPhases = (
 				2C7267B21C4C30C3003BBBC8 /* Sources */,
 				2C7267B31C4C30C3003BBBC8 /* Frameworks */,
@@ -91,9 +91,9 @@
 			);
 			dependencies = (
 			);
-			name = "Bug Hunt";
+			name = BugHunt;
 			productName = "Bug Hunt";
-			productReference = 2C7267B61C4C30C3003BBBC8 /* Bug Hunt.app */;
+			productReference = 2C7267B61C4C30C3003BBBC8 /* BugHunt.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -108,10 +108,11 @@
 				TargetAttributes = {
 					2C7267B51C4C30C3003BBBC8 = {
 						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = AKQ68EUQCY;
 					};
 				};
 			};
-			buildConfigurationList = 2C7267B11C4C30C3003BBBC8 /* Build configuration list for PBXProject "Bug Hunt" */;
+			buildConfigurationList = 2C7267B11C4C30C3003BBBC8 /* Build configuration list for PBXProject "BugHunt" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -124,7 +125,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2C7267B51C4C30C3003BBBC8 /* Bug Hunt */,
+				2C7267B51C4C30C3003BBBC8 /* BugHunt */,
 			);
 		};
 /* End PBXProject section */
@@ -265,10 +266,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				INFOPLIST_FILE = "Bug Hunt/Info.plist";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = BugHunt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "me.eddielee.Bug-Hunt";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = me.eddielee.BugHunt;
+				PRODUCT_NAME = BugHunt;
 			};
 			name = Debug;
 		};
@@ -276,17 +278,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				INFOPLIST_FILE = "Bug Hunt/Info.plist";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = BugHunt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "me.eddielee.Bug-Hunt";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = me.eddielee.BugHunt;
+				PRODUCT_NAME = BugHunt;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2C7267B11C4C30C3003BBBC8 /* Build configuration list for PBXProject "Bug Hunt" */ = {
+		2C7267B11C4C30C3003BBBC8 /* Build configuration list for PBXProject "BugHunt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2C7267CA1C4C30C3003BBBC8 /* Debug */,
@@ -295,7 +298,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2C7267CC1C4C30C3003BBBC8 /* Build configuration list for PBXNativeTarget "Bug Hunt" */ = {
+		2C7267CC1C4C30C3003BBBC8 /* Build configuration list for PBXNativeTarget "BugHunt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2C7267CD1C4C30C3003BBBC8 /* Debug */,
