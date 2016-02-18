@@ -9,32 +9,15 @@
 import SpriteKit
 import GameplayKit
 
-struct SpriteType {
-    static let None: UInt32 = 0
-    static let All: UInt32 = UInt32.max
-    static let Monster: UInt32 = 1
-    static let Projectile: UInt32 = 2
-}
-
-enum MonsterType: UInt32 {
-    case Slow
-    case Medium
-    case Fast
-    
-    private static let _count: MonsterType.RawValue = {
-        var maxValue: UInt32 = 0
-        while let _ = MonsterType(rawValue: ++maxValue) { }
-        return maxValue
-    }()
-    
-    static func randomType() -> MonsterType {
-        let rand = arc4random_uniform(_count)
-        return MonsterType(rawValue: rand)!
-    }
+struct PhysicsCategory {
+    static let Spider:  UInt32 = 0
+    static let Bug:     UInt32 = 0b1
+    static let Web:     UInt32 = 0b10
+    static let None:    UInt32 = UInt32.max
 }
 
 struct GameStats {
-    var monstersKilled = 0
+    var bugsKilled = 0
     var shotsFired = 0
     
     let pointPerKill = 5;
@@ -43,7 +26,7 @@ struct GameStats {
     func calculateScore() -> Int {
         var score = 0
         
-        score += monstersKilled * pointPerKill
+        score += bugsKilled * pointPerKill
         score += shotsFired * pointsPerShot
         
         if (score < 0) {
@@ -59,20 +42,31 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var scoreLabel: SKLabelNode!
     
     var gameStats = GameStats()
-    
-    
-    
+
+    var obstacleGraph: GKObstacleGraph!
+
+    let bugSpeedRandom = GKRandomDistribution(lowestValue: 3, highestValue: 5)
+    var bugPositionRandom: GKRandomDistribution!
+
+
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
+
+        print(size)
+
+        let screenPadding = 25
+        bugPositionRandom = GKRandomDistribution(lowestValue: 0 + screenPadding, highestValue: Int(size.height) - screenPadding)
         
         setupLayout()
-        
+
+        obstacleGraph = GKObstacleGraph()
+
         runAction(SKAction.repeatActionForever(
             SKAction.sequence([
-                SKAction.runBlock(addMonster),
+                SKAction.runBlock(addBug),
                 SKAction.waitForDuration(1)
             ])
-        ))
+        ), withKey: "spawn")
     }
     
     func setupLayout() {
@@ -108,10 +102,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player = SKSpriteNode(imageNamed: "spider")
         player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
         player.anchorPoint = CGPoint(x: 0.34, y: 0.5)
-        player.zPosition = 5
+        player.zPosition = 10
+
+        player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.height/2)
+        player.physicsBody?.categoryBitMask = PhysicsCategory.Spider
+        player.physicsBody?.contactTestBitMask = PhysicsCategory.None
+        player.physicsBody?.collisionBitMask = PhysicsCategory.None
+        player.physicsBody?.dynamic = false
+        player.physicsBody?.pinned = true
+
         addChild(player)
     }
-    
+
     func addScoreLabel() {
         scoreLabel = SKLabelNode()
         scoreLabel.text = "Score: 0"
@@ -119,19 +121,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor.blackColor()
         scoreLabel.position = CGPoint(x: 10, y: size.height - 35)
-        scoreLabel.zPosition = 10
+        scoreLabel.zPosition = 100
         addChild(scoreLabel)
     }
-    
-    func addMonster() {
-        let bugSprite: SKSpriteNode
-        let bugTimeToRun: CGFloat
-        
-        // Pick a bug type
-        switch MonsterType.randomType() {
-        case .Fast:
+
+    func addBug() {
+        var bugSprite: SKSpriteNode!
+
+        let selectedSpeed = bugSpeedRandom.nextInt()
+
+        var frames: [SKTexture]!
+
+        if selectedSpeed == 3 {
             bugSprite = SKSpriteNode(imageNamed: "wasp-move-1")
-            let waspFrames = [
+            bugSprite.name = "wasp"
+            frames = [
                 SKTexture(imageNamed: "wasp-move-1"),
                 SKTexture(imageNamed: "wasp-move-2"),
                 SKTexture(imageNamed: "wasp-move-3"),
@@ -139,11 +143,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 SKTexture(imageNamed: "wasp-move-3"),
                 SKTexture(imageNamed: "wasp-move-2")
             ]
-            bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(waspFrames, timePerFrame: 0.08)))
-            bugTimeToRun = 4
-        case .Medium:
+        }
+
+        if selectedSpeed == 4 {
             bugSprite = SKSpriteNode(imageNamed: "fly-move-1")
-            let flyFrames = [
+            bugSprite.name = "fly"
+            frames = [
                 SKTexture(imageNamed: "fly-move-1"),
                 SKTexture(imageNamed: "fly-move-2"),
                 SKTexture(imageNamed: "fly-move-3"),
@@ -151,11 +156,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 SKTexture(imageNamed: "fly-move-3"),
                 SKTexture(imageNamed: "fly-move-2")
             ]
-            bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(flyFrames, timePerFrame: 0.08)))
-            bugTimeToRun = 4
-        case .Slow:
+        }
+
+        if selectedSpeed == 5 {
             bugSprite = SKSpriteNode(imageNamed: "ladybird-move-1")
-            let ladybirdFrames = [
+            bugSprite.name = "ladybird"
+            frames = [
                 SKTexture(imageNamed: "ladybird-move-1"),
                 SKTexture(imageNamed: "ladybird-move-2"),
                 SKTexture(imageNamed: "ladybird-move-3"),
@@ -163,51 +169,83 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 SKTexture(imageNamed: "ladybird-move-3"),
                 SKTexture(imageNamed: "ladybird-move-2")
             ]
-            bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(ladybirdFrames, timePerFrame: 0.08)))
-            bugTimeToRun = 4
         }
-        
+
+        bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(frames, timePerFrame: 0.1)), withKey: "animate")
+
+        bugSprite.zPosition = 20
+
         // Physics
         bugSprite.physicsBody = SKPhysicsBody(rectangleOfSize: bugSprite.size)
         bugSprite.physicsBody?.dynamic = true
-        bugSprite.physicsBody?.categoryBitMask = SpriteType.Monster
-        bugSprite.physicsBody?.contactTestBitMask = SpriteType.Projectile
-        bugSprite.physicsBody?.collisionBitMask = SpriteType.None
-        
+        bugSprite.physicsBody?.categoryBitMask = PhysicsCategory.Bug
+        bugSprite.physicsBody?.contactTestBitMask = PhysicsCategory.Web
+
+
         // Position
-        let yPosition = random(min: bugSprite.size.height/2, max: size.height - bugSprite.size.height/2)
+        let yPosition = CGFloat(bugPositionRandom.nextInt())
+
         let startXPosition = size.width + bugSprite.size.width / 2;
+        let startPosition = CGPoint(x: startXPosition, y: yPosition)
+
         let endXPosition = 0 - bugSprite.size.width / 2
         let endPosition = CGPoint(x: endXPosition, y: yPosition)
+
+
+
         bugSprite.position = CGPoint(x: startXPosition, y: yPosition)
-        bugSprite.zPosition = 5
+
+
         bugSprite.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
+
+        let startNode = GKGraphNode2D(point: float2(Float(startPosition.x), Float(startPosition.y)))
+        let endNode = GKGraphNode2D(point: float2(Float(endPosition.x), Float(endPosition.y)))
         
-        // Add and animate
+        obstacleGraph.connectNodeUsingObstacles(startNode)
+        obstacleGraph.connectNodeUsingObstacles(endNode)
+
+        let path:[GKGraphNode] = obstacleGraph.findPathFromNode(startNode, toNode: endNode)
+
+        // create an array of actions for player movement
+        var actions = [SKAction]()
+
+        let transitionsInPath = path.count - 1
+
+        for node:GKGraphNode in path {
+            if let point2d = node as? GKGraphNode2D {
+                let point = CGPoint(x: CGFloat(point2d.position.x), y: CGFloat(point2d.position.y))
+                let action = SKAction.moveTo(point, duration: Double(selectedSpeed / transitionsInPath))
+                actions.append(action)
+            }
+        }
+
+        actions.append(SKAction.runBlock({
+            self.obstacleGraph.removeNodes([startNode, endNode])
+            bugSprite.removeFromParent()
+
+            //self.removeActionForKey("spawn")
+            //self.gameOver()
+        }))
+
+        bugSprite.runAction(SKAction.sequence(actions), withKey: "move")
         addChild(bugSprite)
-        bugSprite.runAction(SKAction.sequence([
-            SKAction.moveTo(endPosition, duration: NSTimeInterval(bugTimeToRun)),
-            SKAction.runBlock() { self.gameOver() }
-        ]))
     }
     
-    func gameOver() {
-        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
-        let gameOverScene = GameOverScene(size: self.size)
-        gameOverScene.gameScore = gameStats.calculateScore()
-        self.view?.presentScene(gameOverScene, transition: transition)
-    }
-    
+//    func gameOver() {
+//        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
+//        let gameOverScene = GameOverScene(size: self.size)
+//        gameOverScene.gameScore = gameStats.calculateScore()
+//        self.view?.presentScene(gameOverScene, transition: transition)
+//    }
+
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
         
         let touchLocation = touch.locationInNode(self)
-        
-        
-        let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
-        player.constraints = [rotateConstraint]
+
+        facePlayerToPoint(touchLocation)
     }
     
     override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -216,9 +254,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         let touchLocation = touch.locationInNode(self)
-        
-        let rotateConstraint = SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))
-        player.constraints = [rotateConstraint]
+
+        facePlayerToPoint(touchLocation)
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -227,84 +264,102 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         let touchLocation = touch.locationInNode(self)
-        
+
+        facePlayerToPoint(touchLocation)
         shootWebAtPoint(touchLocation)
+    }
+
+    func facePlayerToPoint(point: CGPoint) {
+        let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
+        player.constraints = [rotateConstraint]
     }
     
     func shootWebAtPoint(point: CGPoint) {
-        let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
-        player.constraints = [rotateConstraint]
-        
-        let projectile = SKSpriteNode(imageNamed: "web-shoot")
-        projectile.position = player.position
-        projectile.physicsBody = SKPhysicsBody(circleOfRadius: projectile.size.width/2)
-        projectile.physicsBody?.dynamic = false
-        projectile.physicsBody?.categoryBitMask = SpriteType.Projectile
-        projectile.physicsBody?.contactTestBitMask = SpriteType.Monster
-        projectile.physicsBody?.collisionBitMask = SpriteType.None
-        projectile.physicsBody?.usesPreciseCollisionDetection = true
-        projectile.zPosition = 4
-        projectile.setScale(0)
-        projectile.runAction(SKAction.sequence([
+        let web = SKSpriteNode(imageNamed: "web-shoot")
+        web.position = player.position
+        web.physicsBody = SKPhysicsBody(rectangleOfSize: web.size)
+        web.physicsBody?.dynamic = false
+        web.physicsBody?.categoryBitMask = PhysicsCategory.Web
+        web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
+        web.physicsBody?.usesPreciseCollisionDetection = true
+        web.zPosition = 5
+        web.setScale(0)
+        web.runAction(SKAction.sequence([
             SKAction.runBlock({
-                projectile.constraints = [rotateConstraint]
+                let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
+                web.constraints = [rotateConstraint]
             }),
             SKAction.waitForDuration(0.01),
             SKAction.runBlock({
-                projectile.constraints = []
+                web.constraints = []
             }),
-            SKAction.scaleTo(1, duration: 0.1)
-            ]))
+            SKAction.scaleTo(1, duration: 0.1),
+            SKAction.runBlock({
+                web.zPosition = 30
+            })
+        ]))
         
-        addChild(projectile)
+        addChild(web)
         
         gameStats.shotsFired++
         updateScore()
-        
+
         let touchOffset = point - player.position
         let shootDirection = touchOffset.normalized()
         let shootDistance = shootDirection * 1000
-        let projectileDestination = shootDistance + projectile.position
+        let destination = shootDistance + web.position
         
-        let actionMove = SKAction.moveTo(projectileDestination, duration: 2.0)
+        let actionMove = SKAction.moveTo(destination, duration: 2.0)
         let actionMoveDone = SKAction.removeFromParent()
-        projectile.runAction(SKAction.sequence([actionMove, actionMoveDone]))
-    }
-    
-    func projectileDidCollideWithMonster(projectile:SKSpriteNode, monster:SKSpriteNode) {
-        projectile.removeFromParent()
-        monster.removeFromParent()
-        
-        gameStats.monstersKilled++
-        updateScore()
+        web.runAction(SKAction.sequence([actionMove, actionMoveDone]))
     }
     
     func updateScore() {
         scoreLabel.text = "Score: \(gameStats.calculateScore())"
     }
-    
+
     func didBeginContact(contact: SKPhysicsContact) {
-        var firstBody: SKPhysicsBody
-        var secondBody: SKPhysicsBody
-        if contact.bodyA.categoryBitMask < contact.bodyB.categoryBitMask {
-            firstBody = contact.bodyA
-            secondBody = contact.bodyB
-        } else {
-            firstBody = contact.bodyB
-            secondBody = contact.bodyA
+        if let web  = get(PhysicsCategory.Web, fromContact: contact) {
+            web.removeFromParent()
         }
-        
-        if ((firstBody.categoryBitMask & SpriteType.Monster != 0) &&
-            (secondBody.categoryBitMask & SpriteType.Projectile != 0)) {
-                projectileDidCollideWithMonster(firstBody.node as! SKSpriteNode, monster: secondBody.node as! SKSpriteNode)
+
+        if let bug = get(PhysicsCategory.Bug, fromContact: contact) {
+
+            gameStats.bugsKilled++
+            updateScore()
+
+            bug.removeActionForKey("animate")
+            bug.removeActionForKey("move")
+            bug.zPosition = 15
+            bug.texture = SKTexture(imageNamed: "\(bug.name!)-web")
+            bug.physicsBody = nil
+
+            bug.runAction(SKAction.sequence([
+                SKAction.waitForDuration(4),
+                SKAction.fadeAlphaTo(0, duration: 1),
+                SKAction.runBlock({
+                    bug.removeFromParent()
+                })
+            ]))
         }
     }
-    
-    func random() -> CGFloat {
-        return CGFloat(Float(arc4random()) / 0xFFFFFFFF)
+
+    func get(type: UInt32, fromContact: SKPhysicsContact) -> SKSpriteNode? {
+        if fromContact.bodyA.categoryBitMask == type {
+            return getSprideNode(fromContact.bodyA)
+        }
+        if fromContact.bodyB.categoryBitMask == type {
+            return getSprideNode(fromContact.bodyB)
+        }
+
+        return nil
     }
-    
-    func random(min min: CGFloat, max: CGFloat) -> CGFloat {
-        return random() * (max - min) + min
+
+    func getSprideNode(physicsBody: SKPhysicsBody) -> SKSpriteNode? {
+        if let spriteNode = physicsBody.node as? SKSpriteNode {
+            return spriteNode
+        }
+
+        return nil
     }
 }
