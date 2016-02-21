@@ -226,7 +226,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 self.bugDidReachTarget()
             }),
             SKAction.removeFromParent()
-            ]), withKey: "move")
+        ]), withKey: "move")
         
         addChild(bug)
     }
