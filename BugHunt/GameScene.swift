@@ -18,6 +18,7 @@ struct PhysicsCategory {
 
 enum Layer: CGFloat {
     case Background
+    case BackgroundDetail
     case DeadBug
     case Web
     case Player
@@ -105,10 +106,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         startGame()
     }
     
+    
+    
     // MARK: Setup
     
     func setupLayout() {
         addBackground()
+        addBackgroundDetail()
         addPlayer()
         addScoreLabel()
     }
@@ -134,6 +138,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         addChild(backgroundNode)
+    }
+    
+    func addBackgroundDetail() {
+        let xPositionRandom = GKShuffledDistribution(lowestValue: 0, highestValue: Int(size.width))
+        let yPositionRandom = GKShuffledDistribution(lowestValue: 0, highestValue: Int(size.height))
+        
+        for _ in 1...20 {
+            let flower = SKSpriteNode(imageNamed: "flower")
+            flower.zPosition = Layer.BackgroundDetail.rawValue
+            flower.position = CGPoint(x: xPositionRandom.nextInt(), y: yPositionRandom.nextInt())
+            addChild(flower)
+            
+            let daisy = SKSpriteNode(imageNamed: "daisy")
+            daisy.zPosition = Layer.BackgroundDetail.rawValue
+            daisy.position = CGPoint(x: xPositionRandom.nextInt(), y: yPositionRandom.nextInt())
+            addChild(daisy)
+        }
     }
     
     func addPlayer() {
