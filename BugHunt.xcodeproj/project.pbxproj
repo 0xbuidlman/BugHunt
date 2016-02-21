@@ -20,7 +20,7 @@
 /* Begin PBXFileReference section */
 		2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGPointExtension.swift; sourceTree = "<group>"; };
 		2C71B03D1C4C32F400524D50 /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
-		2C7267B61C4C30C3003BBBC8 /* BugHunt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BugHunt.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2C7267B61C4C30C3003BBBC8 /* Garden Predator.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Garden Predator.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2C7267B91C4C30C3003BBBC8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2C7267BD1C4C30C3003BBBC8 /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
 		2C7267BF1C4C30C3003BBBC8 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
@@ -52,7 +52,7 @@
 		2C7267B71C4C30C3003BBBC8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2C7267B61C4C30C3003BBBC8 /* BugHunt.app */,
+				2C7267B61C4C30C3003BBBC8 /* Garden Predator.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -90,7 +90,7 @@
 			);
 			name = BugHunt;
 			productName = "Bug Hunt";
-			productReference = 2C7267B61C4C30C3003BBBC8 /* BugHunt.app */;
+			productReference = 2C7267B61C4C30C3003BBBC8 /* Garden Predator.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -266,7 +266,7 @@
 				INFOPLIST_FILE = BugHunt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = me.eddielee.BugHunt;
-				PRODUCT_NAME = BugHunt;
+				PRODUCT_NAME = "Garden Predator";
 			};
 			name = Debug;
 		};
@@ -278,7 +278,7 @@
 				INFOPLIST_FILE = BugHunt/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = me.eddielee.BugHunt;
-				PRODUCT_NAME = BugHunt;
+				PRODUCT_NAME = "Garden Predator";
 			};
 			name = Release;
 		};
