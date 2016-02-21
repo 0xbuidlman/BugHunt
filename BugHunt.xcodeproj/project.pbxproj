@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2C39E0741C710D9E00DC8678 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 2C39E0731C710D9E00DC8678 /* GameScene.sks */; };
 		2C71B0401C4C32F400524D50 /* CGPointExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */; };
 		2C71B0411C4C32F400524D50 /* GameOverScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C71B03D1C4C32F400524D50 /* GameOverScene.swift */; };
 		2C7267BA1C4C30C3003BBBC8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C7267B91C4C30C3003BBBC8 /* AppDelegate.swift */; };
@@ -19,7 +18,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2C39E0731C710D9E00DC8678 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
 		2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGPointExtension.swift; sourceTree = "<group>"; };
 		2C71B03D1C4C32F400524D50 /* GameOverScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GameOverScene.swift; sourceTree = "<group>"; };
 		2C7267B61C4C30C3003BBBC8 /* BugHunt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BugHunt.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -64,7 +62,6 @@
 			children = (
 				2C7267B91C4C30C3003BBBC8 /* AppDelegate.swift */,
 				2C7267BF1C4C30C3003BBBC8 /* GameViewController.swift */,
-				2C39E0731C710D9E00DC8678 /* GameScene.sks */,
 				2C7267BD1C4C30C3003BBBC8 /* GameScene.swift */,
 				2C71B03D1C4C32F400524D50 /* GameOverScene.swift */,
 				2C71B03C1C4C32F400524D50 /* CGPointExtension.swift */,
@@ -135,7 +132,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2C39E0741C710D9E00DC8678 /* GameScene.sks in Resources */,
 				2C7267C81C4C30C3003BBBC8 /* LaunchScreen.storyboard in Resources */,
 				2C7267C51C4C30C3003BBBC8 /* Assets.xcassets in Resources */,
 				2C7267C31C4C30C3003BBBC8 /* Main.storyboard in Resources */,

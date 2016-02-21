@@ -51,8 +51,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
-
-        print(size)
+        physicsWorld.gravity = CGVector(dx: 0, dy: 0)
 
         let screenPadding = 25
         bugPositionRandom = GKRandomDistribution(lowestValue: 0 + screenPadding, highestValue: Int(size.height) - screenPadding)
