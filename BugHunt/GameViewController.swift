@@ -11,6 +11,8 @@ import SpriteKit
 
 class GameViewController: UIViewController {
     
+    let sceneFixedHeight:CGFloat = 375
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         
@@ -18,14 +20,23 @@ class GameViewController: UIViewController {
             if skView.scene == nil {
                 
                 // Create the scene
-                let scene = GameScene(size: view.bounds.size)
+                let screenAspectRatio = skView.bounds.size.width / skView.bounds.size.height
+                let sceneSize = CGSize(width: sceneFixedHeight * screenAspectRatio, height: sceneFixedHeight)
+//                let sceneAspectRatio = sceneSize.width / sceneSize.height
+                
+//                print("Screen Size: \(skView.bounds.size)")
+//                print("Screen Aspect Ratio: \(screenAspectRatio)")
+//                print("Scene Size: \(sceneSize)")
+//                print("Scene Aspect Ratio: \(sceneAspectRatio)")
+                
+                let scene = GameScene(size: sceneSize)
                 
                 skView.showsFPS = true
                 skView.showsNodeCount = true
                 skView.showsPhysics = true
                 skView.ignoresSiblingOrder = true
                 
-                scene.scaleMode = .AspectFill
+                scene.scaleMode = .AspectFit
                 
                 skView.presentScene(scene)
             }

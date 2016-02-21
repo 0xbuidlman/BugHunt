@@ -16,6 +16,15 @@ struct PhysicsCategory {
     static let None:    UInt32 = UInt32.max
 }
 
+enum Layer: CGFloat {
+    case Background
+    case DeadBug
+    case Web
+    case Player
+    case Bug
+    case Hud
+}
+
 struct GameStats {
     var bugsKilled = 0
     var shotsFired = 0
@@ -52,6 +61,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
+        
 
         let screenPadding = 25
         bugPositionRandom = GKRandomDistribution(lowestValue: 0 + screenPadding, highestValue: Int(size.height) - screenPadding)
@@ -79,7 +89,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let grassSprite = SKSpriteNode(imageNamed: "grass")
         grassSprite.anchorPoint = CGPoint.zero
-        grassSprite.zPosition = 0
+        grassSprite.zPosition = Layer.Background.rawValue
                 
         let xBlocks = Int(size.width / grassSprite.size.width)
         let yBlocks = Int(size.height / grassSprite.size.height)
@@ -101,7 +111,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player = SKSpriteNode(imageNamed: "spider")
         player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
         player.anchorPoint = CGPoint(x: 0.34, y: 0.5)
-        player.zPosition = 10	
+        player.zPosition = Layer.Player.rawValue
 
         addChild(player)
     }
@@ -113,7 +123,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.fontSize = 25
         scoreLabel.fontColor = SKColor.blackColor()
         scoreLabel.position = CGPoint(x: 10, y: size.height - 35)
-        scoreLabel.zPosition = 100
+        scoreLabel.zPosition = Layer.Hud.rawValue
         addChild(scoreLabel)
     }
 
@@ -165,7 +175,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(frames, timePerFrame: 0.1)), withKey: "animate")
 
-        bugSprite.zPosition = 20
+        bugSprite.zPosition = Layer.Bug.rawValue
 
         // Physics
         bugSprite.physicsBody = SKPhysicsBody(circleOfRadius: bugSprite.size.height/2)
@@ -215,20 +225,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.obstacleGraph.removeNodes([startNode, endNode])
             bugSprite.removeFromParent()
 
-            //self.removeActionForKey("spawn")
-            //self.gameOver()
+            self.removeActionForKey("spawn")
+            self.gameOver()
         }))
 
         bugSprite.runAction(SKAction.sequence(actions), withKey: "move")
         addChild(bugSprite)
     }
     
-//    func gameOver() {
-//        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
-//        let gameOverScene = GameOverScene(size: self.size)
-//        gameOverScene.gameScore = gameStats.calculateScore()
-//        self.view?.presentScene(gameOverScene, transition: transition)
-//    }
+    func gameOver() {
+        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
+        let gameOverScene = GameOverScene(size: self.size)
+        gameOverScene.gameScore = gameStats.calculateScore()
+        self.view?.presentScene(gameOverScene, transition: transition)
+    }
 
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         guard let touch = touches.first else {
@@ -274,7 +284,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         web.physicsBody?.categoryBitMask = PhysicsCategory.Web
         web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
         web.physicsBody?.usesPreciseCollisionDetection = true
-        web.zPosition = 5
+        web.zPosition = Layer.Web.rawValue
         web.setScale(0)
         web.runAction(SKAction.sequence([
             SKAction.runBlock({
@@ -285,10 +295,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             SKAction.runBlock({
                 web.constraints = []
             }),
-            SKAction.scaleTo(1, duration: 0.1),
-            SKAction.runBlock({
-                web.zPosition = 30
-            })
+            SKAction.scaleTo(1, duration: 0.1)
         ]))
         
         addChild(web)
@@ -311,29 +318,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     func didBeginContact(contact: SKPhysicsContact) {
-        if let web  = get(PhysicsCategory.Web, fromContact: contact) {
-            web.removeFromParent()
+        guard let web  = get(PhysicsCategory.Web, fromContact: contact) else {
+            return
         }
-
-        if let bug = get(PhysicsCategory.Bug, fromContact: contact) {
-
-            gameStats.bugsKilled++
-            updateScore()
-
-            bug.removeActionForKey("animate")
-            bug.removeActionForKey("move")
-            bug.zPosition = 15
-            bug.texture = SKTexture(imageNamed: "\(bug.name!)-web")
-            bug.physicsBody = nil
-
-            bug.runAction(SKAction.sequence([
-                SKAction.waitForDuration(4),
-                SKAction.fadeAlphaTo(0, duration: 1),
-                SKAction.runBlock({
-                    bug.removeFromParent()
-                })
-            ]))
+        
+        guard let bug = get(PhysicsCategory.Bug, fromContact: contact) else {
+            return
         }
+        
+        webDidCollideWithBug(web, bug: bug)
+    }
+    
+    func webDidCollideWithBug(web: SKSpriteNode, bug: SKSpriteNode) {
+        web.removeFromParent()
+        
+        gameStats.bugsKilled++
+        updateScore()
+        
+        bug.removeActionForKey("animate")
+        bug.removeActionForKey("move")
+        bug.zPosition = Layer.DeadBug.rawValue
+        bug.texture = SKTexture(imageNamed: "\(bug.name!)-web")
+        bug.physicsBody = nil
+        
+        bug.runAction(SKAction.sequence([
+            SKAction.waitForDuration(3),
+            SKAction.fadeAlphaTo(0, duration: 1),
+            SKAction.runBlock({
+                bug.removeFromParent()
+            })
+        ]))
     }
 
     func get(type: UInt32, fromContact: SKPhysicsContact) -> SKSpriteNode? {
