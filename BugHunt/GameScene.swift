@@ -101,14 +101,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player = SKSpriteNode(imageNamed: "spider")
         player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
         player.anchorPoint = CGPoint(x: 0.34, y: 0.5)
-        player.zPosition = 10
-
-        player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.height/2)
-        player.physicsBody?.categoryBitMask = PhysicsCategory.Spider
-        player.physicsBody?.contactTestBitMask = PhysicsCategory.None
-        player.physicsBody?.collisionBitMask = PhysicsCategory.None
-        player.physicsBody?.dynamic = false
-        player.physicsBody?.pinned = true
+        player.zPosition = 10	
 
         addChild(player)
     }
@@ -175,7 +168,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bugSprite.zPosition = 20
 
         // Physics
-        bugSprite.physicsBody = SKPhysicsBody(rectangleOfSize: bugSprite.size)
+        bugSprite.physicsBody = SKPhysicsBody(circleOfRadius: bugSprite.size.height/2)
         bugSprite.physicsBody?.dynamic = true
         bugSprite.physicsBody?.categoryBitMask = PhysicsCategory.Bug
         bugSprite.physicsBody?.contactTestBitMask = PhysicsCategory.Web
@@ -276,7 +269,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func shootWebAtPoint(point: CGPoint) {
         let web = SKSpriteNode(imageNamed: "web-shoot")
         web.position = player.position
-        web.physicsBody = SKPhysicsBody(rectangleOfSize: web.size)
+        web.physicsBody = SKPhysicsBody(circleOfRadius: web.size.height/2)
         web.physicsBody?.dynamic = false
         web.physicsBody?.categoryBitMask = PhysicsCategory.Web
         web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
