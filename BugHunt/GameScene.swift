@@ -25,6 +25,44 @@ enum Layer: CGFloat {
     case Hud
 }
 
+enum BugType: Int {
+    case Ladybird, Fly, Wasp
+    
+    func spriteName() -> String {
+        switch self {
+        case .Ladybird:
+            return "ladybird"
+        case .Fly:
+            return "fly"
+        case .Wasp:
+            return "wasp"
+        }
+    }
+    
+    func speed() -> Double {
+        switch self {
+        case .Ladybird:
+            return 5
+        case .Fly:
+            return 4
+        case .Wasp:
+            return 3
+        }
+    }
+    
+    private static let _count: BugType.RawValue = {
+        var maxValue: Int = 0
+        while let _ = BugType(rawValue: ++maxValue) { }
+        return maxValue
+    }()
+    
+    static func random(randomSource: GKRandomSource) -> BugType {
+        let random = GKRandomDistribution(randomSource: randomSource, lowestValue: 0, highestValue: _count - 1)
+        let index = random.nextInt()
+        return BugType(rawValue: index)!
+    }
+}
+
 struct GameStats {
     var bugsKilled = 0
     var shotsFired = 0
@@ -51,32 +89,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var scoreLabel: SKLabelNode!
     
     var gameStats = GameStats()
-
-    var obstacleGraph: GKObstacleGraph!
-
-    let bugSpeedRandom = GKRandomDistribution(lowestValue: 3, highestValue: 5)
+    
     var bugPositionRandom: GKRandomDistribution!
-
+    var bugTypeRandomSource = GKRandomSource()
 
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
-
-        let screenPadding = 25
-        bugPositionRandom = GKRandomDistribution(lowestValue: 0 + screenPadding, highestValue: Int(size.height) - screenPadding)
-        
         setupLayout()
-
-        obstacleGraph = GKObstacleGraph()
-
-        runAction(SKAction.repeatActionForever(
-            SKAction.sequence([
-                SKAction.runBlock(addBug),
-                SKAction.waitForDuration(1)
-            ])
-        ), withKey: "spawn")
+        
+        let screenPadding = 25
+        bugPositionRandom = GKRandomDistribution(lowestValue: screenPadding, highestValue: Int(size.height) - screenPadding)
+        
+        startGame()
     }
+    
+    // MARK: Setup
     
     func setupLayout() {
         addBackground()
@@ -126,128 +155,127 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.zPosition = Layer.Hud.rawValue
         addChild(scoreLabel)
     }
-
-    func addBug() {
-        var bugSprite: SKSpriteNode!
-
-        let selectedSpeed = bugSpeedRandom.nextInt()
-
-        var frames: [SKTexture]!
-
-        if selectedSpeed == 3 {
-            bugSprite = SKSpriteNode(imageNamed: "wasp-move-1")
-            bugSprite.name = "wasp"
-            frames = [
-                SKTexture(imageNamed: "wasp-move-1"),
-                SKTexture(imageNamed: "wasp-move-2"),
-                SKTexture(imageNamed: "wasp-move-3"),
-                SKTexture(imageNamed: "wasp-move-4"),
-                SKTexture(imageNamed: "wasp-move-3"),
-                SKTexture(imageNamed: "wasp-move-2")
-            ]
-        }
-
-        if selectedSpeed == 4 {
-            bugSprite = SKSpriteNode(imageNamed: "fly-move-1")
-            bugSprite.name = "fly"
-            frames = [
-                SKTexture(imageNamed: "fly-move-1"),
-                SKTexture(imageNamed: "fly-move-2"),
-                SKTexture(imageNamed: "fly-move-3"),
-                SKTexture(imageNamed: "fly-move-4"),
-                SKTexture(imageNamed: "fly-move-3"),
-                SKTexture(imageNamed: "fly-move-2")
-            ]
-        }
-
-        if selectedSpeed == 5 {
-            bugSprite = SKSpriteNode(imageNamed: "ladybird-move-1")
-            bugSprite.name = "ladybird"
-            frames = [
-                SKTexture(imageNamed: "ladybird-move-1"),
-                SKTexture(imageNamed: "ladybird-move-2"),
-                SKTexture(imageNamed: "ladybird-move-3"),
-                SKTexture(imageNamed: "ladybird-move-4"),
-                SKTexture(imageNamed: "ladybird-move-3"),
-                SKTexture(imageNamed: "ladybird-move-2")
-            ]
-        }
-
-        bugSprite.runAction(SKAction.repeatActionForever(SKAction.animateWithTextures(frames, timePerFrame: 0.1)), withKey: "animate")
-
-        bugSprite.zPosition = Layer.Bug.rawValue
-
-        // Physics
-        bugSprite.physicsBody = SKPhysicsBody(circleOfRadius: bugSprite.size.height/2)
-        bugSprite.physicsBody?.dynamic = true
-        bugSprite.physicsBody?.categoryBitMask = PhysicsCategory.Bug
-        bugSprite.physicsBody?.contactTestBitMask = PhysicsCategory.Web
-
-
-        // Position
-        let yPosition = CGFloat(bugPositionRandom.nextInt())
-
-        let startXPosition = size.width + bugSprite.size.width / 2;
-        let startPosition = CGPoint(x: startXPosition, y: yPosition)
-
-        let endXPosition = 0 - bugSprite.size.width / 2
-        let endPosition = CGPoint(x: endXPosition, y: yPosition)
-
-
-
-        bugSprite.position = CGPoint(x: startXPosition, y: yPosition)
-
-
-        bugSprite.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
-
-        let startNode = GKGraphNode2D(point: float2(Float(startPosition.x), Float(startPosition.y)))
-        let endNode = GKGraphNode2D(point: float2(Float(endPosition.x), Float(endPosition.y)))
-        
-        obstacleGraph.connectNodeUsingObstacles(startNode)
-        obstacleGraph.connectNodeUsingObstacles(endNode)
-
-        let path:[GKGraphNode] = obstacleGraph.findPathFromNode(startNode, toNode: endNode)
-
-        // create an array of actions for player movement
-        var actions = [SKAction]()
-
-        let transitionsInPath = path.count - 1
-
-        for node:GKGraphNode in path {
-            if let point2d = node as? GKGraphNode2D {
-                let point = CGPoint(x: CGFloat(point2d.position.x), y: CGFloat(point2d.position.y))
-                let action = SKAction.moveTo(point, duration: Double(selectedSpeed / transitionsInPath))
-                actions.append(action)
-            }
-        }
-
-        actions.append(SKAction.runBlock({
-            self.obstacleGraph.removeNodes([startNode, endNode])
-            bugSprite.removeFromParent()
-
-            self.removeActionForKey("spawn")
-            self.gameOver()
-        }))
-
-        bugSprite.runAction(SKAction.sequence(actions), withKey: "move")
-        addChild(bugSprite)
+    
+    
+    
+    // MARK: Game life cycle
+    
+    func startGame() {
+        runAction(SKAction.repeatActionForever(
+            SKAction.sequence([
+                SKAction.runBlock(addBug),
+                SKAction.waitForDuration(1)
+            ])
+        ), withKey: "spawn")
+    }
+    
+    func bugDidReachTarget() {
+        self.gameOver()
     }
     
     func gameOver() {
-        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
+        // Stop new bugs from spawning
+        self.removeActionForKey("spawn")
+        
+        // Transition to Game Over Scene
         let gameOverScene = GameOverScene(size: self.size)
         gameOverScene.gameScore = gameStats.calculateScore()
+        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
         self.view?.presentScene(gameOverScene, transition: transition)
     }
-
+    
+    
+    
+    // MARK: Game actions
+    
+    func addBug() {
+        let bugType = BugType.random(bugTypeRandomSource)
+        let bug = getBugSprite(bugType.spriteName())
+        
+        let yPosition = CGFloat(bugPositionRandom.nextInt())
+        let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: yPosition)
+        let endPosition = CGPoint(x: -bug.size.width / 2, y: yPosition)
+        
+        bug.position = startPosition
+        bug.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
+        
+        bug.runAction(SKAction.sequence([
+            SKAction.moveTo(endPosition, duration: bugType.speed()),
+            SKAction.runBlock({
+                self.bugDidReachTarget()
+            }),
+            SKAction.removeFromParent()
+            ]), withKey: "move")
+        
+        addChild(bug)
+    }
+    
+    func shootWebAtPoint(point: CGPoint) {
+        gameStats.shotsFired++
+        updateScore()
+        
+        
+        let web = SKSpriteNode(imageNamed: "web-shoot")
+        web.position = player.position
+        
+        web.physicsBody = SKPhysicsBody(circleOfRadius: web.size.height/2)
+        web.physicsBody?.dynamic = false
+        web.physicsBody?.categoryBitMask = PhysicsCategory.Web
+        web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
+        web.physicsBody?.usesPreciseCollisionDetection = true
+        
+        web.zPosition = Layer.Web.rawValue
+        web.setScale(0)
+        
+        let webDestination = getTargetDestination(web.position, destinationPoint: point)
+        
+        web.constraints = [SKConstraint.orientToPoint(webDestination, offset: SKRange(constantValue: 0))]
+        
+        let animateWebAction = SKAction.scaleTo(1, duration: 0.1)
+        let moveWebAction = SKAction.sequence([
+            SKAction.moveTo(webDestination, duration: 2.0),
+            SKAction.removeFromParent()
+        ])
+        
+        web.runAction(SKAction.group([
+            animateWebAction,
+            moveWebAction
+        ]))
+        
+        addChild(web)
+    }
+    
+    func webDidCollideWithBug(web: SKSpriteNode, bug: SKSpriteNode) {
+        gameStats.bugsKilled++
+        updateScore()
+        
+        web.removeFromParent()
+        
+        bug.removeActionForKey("animate")
+        bug.removeActionForKey("move")
+        bug.zPosition = Layer.DeadBug.rawValue
+        bug.texture = SKTexture(imageNamed: "\(bug.name!)-web")
+        bug.physicsBody = nil
+        
+        bug.runAction(SKAction.sequence([
+            SKAction.waitForDuration(3),
+            SKAction.fadeAlphaTo(0, duration: 1),
+            SKAction.removeFromParent()
+        ]))
+    }
+    
+    
+    
+    // MARK: Player input
+    
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
         
         let touchLocation = touch.locationInNode(self)
-
-        facePlayerToPoint(touchLocation)
+        
+        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))]
     }
     
     override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -256,8 +284,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         let touchLocation = touch.locationInNode(self)
-
-        facePlayerToPoint(touchLocation)
+        
+        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))]
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -266,55 +294,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         let touchLocation = touch.locationInNode(self)
-
-        facePlayerToPoint(touchLocation)
+        
+        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))]
         shootWebAtPoint(touchLocation)
-    }
-
-    func facePlayerToPoint(point: CGPoint) {
-        let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
-        player.constraints = [rotateConstraint]
-    }
-    
-    func shootWebAtPoint(point: CGPoint) {
-        let web = SKSpriteNode(imageNamed: "web-shoot")
-        web.position = player.position
-        web.physicsBody = SKPhysicsBody(circleOfRadius: web.size.height/2)
-        web.physicsBody?.dynamic = false
-        web.physicsBody?.categoryBitMask = PhysicsCategory.Web
-        web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
-        web.physicsBody?.usesPreciseCollisionDetection = true
-        web.zPosition = Layer.Web.rawValue
-        web.setScale(0)
-        web.runAction(SKAction.sequence([
-            SKAction.runBlock({
-                let rotateConstraint = SKConstraint.orientToPoint(point, offset: SKRange(constantValue: 0))
-                web.constraints = [rotateConstraint]
-            }),
-            SKAction.waitForDuration(0.01),
-            SKAction.runBlock({
-                web.constraints = []
-            }),
-            SKAction.scaleTo(1, duration: 0.1)
-        ]))
-        
-        addChild(web)
-        
-        gameStats.shotsFired++
-        updateScore()
-
-        let touchOffset = point - player.position
-        let shootDirection = touchOffset.normalized()
-        let shootDistance = shootDirection * 1000
-        let destination = shootDistance + web.position
-        
-        let actionMove = SKAction.moveTo(destination, duration: 2.0)
-        let actionMoveDone = SKAction.removeFromParent()
-        web.runAction(SKAction.sequence([actionMove, actionMoveDone]))
-    }
-    
-    func updateScore() {
-        scoreLabel.text = "Score: \(gameStats.calculateScore())"
     }
 
     func didBeginContact(contact: SKPhysicsContact) {
@@ -329,43 +311,64 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         webDidCollideWithBug(web, bug: bug)
     }
     
-    func webDidCollideWithBug(web: SKSpriteNode, bug: SKSpriteNode) {
-        web.removeFromParent()
-        
-        gameStats.bugsKilled++
-        updateScore()
-        
-        bug.removeActionForKey("animate")
-        bug.removeActionForKey("move")
-        bug.zPosition = Layer.DeadBug.rawValue
-        bug.texture = SKTexture(imageNamed: "\(bug.name!)-web")
-        bug.physicsBody = nil
-        
-        bug.runAction(SKAction.sequence([
-            SKAction.waitForDuration(3),
-            SKAction.fadeAlphaTo(0, duration: 1),
-            SKAction.runBlock({
-                bug.removeFromParent()
-            })
-        ]))
+    
+    
+    // MARK: Helper methods
+    
+    func updateScore() {
+        scoreLabel.text = "Score: \(gameStats.calculateScore())"
     }
-
+    
+    func getBugSprite(named: String) -> SKSpriteNode {
+        let bugSprite = SKSpriteNode(imageNamed: "\(named)-move-1")
+        bugSprite.name = named
+        
+        let animateAction = SKAction.animateWithTextures([
+            SKTexture(imageNamed: "\(named)-move-1"),
+            SKTexture(imageNamed: "\(named)-move-2"),
+            SKTexture(imageNamed: "\(named)-move-3"),
+            SKTexture(imageNamed: "\(named)-move-4"),
+            SKTexture(imageNamed: "\(named)-move-3"),
+            SKTexture(imageNamed: "\(named)-move-2")
+            ], timePerFrame: 0.1)
+        
+        bugSprite.runAction(SKAction.repeatActionForever(animateAction), withKey: "animate")
+        
+        bugSprite.physicsBody = SKPhysicsBody(circleOfRadius: bugSprite.size.height/2)
+        bugSprite.physicsBody?.dynamic = true
+        bugSprite.physicsBody?.categoryBitMask = PhysicsCategory.Bug
+        bugSprite.physicsBody?.contactTestBitMask = PhysicsCategory.Web
+        
+        bugSprite.zPosition = Layer.Bug.rawValue
+        
+        return bugSprite
+    }
+    
     func get(type: UInt32, fromContact: SKPhysicsContact) -> SKSpriteNode? {
         if fromContact.bodyA.categoryBitMask == type {
-            return getSprideNode(fromContact.bodyA)
+            return getSpriteNode(fromContact.bodyA)
         }
         if fromContact.bodyB.categoryBitMask == type {
-            return getSprideNode(fromContact.bodyB)
+            return getSpriteNode(fromContact.bodyB)
         }
-
+        
         return nil
     }
-
-    func getSprideNode(physicsBody: SKPhysicsBody) -> SKSpriteNode? {
+    
+    func getSpriteNode(physicsBody: SKPhysicsBody) -> SKSpriteNode? {
         if let spriteNode = physicsBody.node as? SKSpriteNode {
             return spriteNode
         }
-
+        
         return nil
+    }
+    
+    func getTargetDestination(startPoint: CGPoint, destinationPoint: CGPoint) -> CGPoint {
+        let pointOffset = destinationPoint - startPoint
+        let shootDirection = pointOffset.normalized()
+        let shootDistance = shootDirection * 1000
+        let destination = shootDistance + startPoint
+        
+        return destination
     }
 }
