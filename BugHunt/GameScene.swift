@@ -65,7 +65,7 @@ enum BugType: Int {
 }
 
 struct GameStats {
-    var bugsKilled = 0
+    var bugsKilled = 0    
     var shotsFired = 0
     
     let pointPerKill = 5;
@@ -93,6 +93,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var bugPositionRandom: GKRandomDistribution!
     var bugTypeRandomSource = GKRandomSource()
+    
+    var lifeSprites = [SKSpriteNode]()
+    let MaxNumberOfLives = 3
+    var currentNumberOfLives = 0
 
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
@@ -115,6 +119,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addBackgroundDetail()
         addPlayer()
         addScoreLabel()
+        addLivesNode()
     }
     
     func addBackground() {
@@ -177,11 +182,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(scoreLabel)
     }
     
+    func addLivesNode() {
+        let livesContainer = SKNode()
+        livesContainer.name = "lives-container"
+        
+        for lifeNumber in 1...MaxNumberOfLives {
+            let lifeSprite = SKSpriteNode(imageNamed: "heart")
+            lifeSprite.name = "life-\(lifeNumber)"
+            lifeSprite.anchorPoint = CGPoint(x: 0, y: 1)
+            lifeSprite.position = CGPoint(x: (lifeSprite.size.width + 5) * CGFloat(lifeNumber), y: 0)
+            lifeSprite.runAction(SKAction.repeatActionForever(SKAction.sequence([
+                SKAction.scaleTo(0.8, duration: 0.5),
+                SKAction.scaleTo(1.0, duration: 0.5)
+            ])), withKey: "animate")
+            lifeSprites.append(lifeSprite)
+            livesContainer.addChild(lifeSprite)
+        }
+        
+        livesContainer.zPosition = Layer.Hud.rawValue
+        livesContainer.position = CGPoint(x: size.width / 2, y: size.height - 5)
+        
+        addChild(livesContainer)
+    }
+    
     
     
     // MARK: Game life cycle
     
     func startGame() {
+        currentNumberOfLives = MaxNumberOfLives
+        
         runAction(SKAction.repeatActionForever(
             SKAction.sequence([
                 SKAction.runBlock(addBug),
@@ -191,7 +221,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func bugDidReachTarget() {
-        self.gameOver()
+        currentNumberOfLives--;
+        
+        if currentNumberOfLives < 1 {
+            self.gameOver()
+        } else {
+            updateRemainingLives()
+        }
     }
     
     func gameOver() {
@@ -205,6 +241,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.view?.presentScene(gameOverScene, transition: transition)
     }
     
+    func updateScore() {
+        scoreLabel.text = "Score: \(gameStats.calculateScore())"
+    }
+    
+    func updateRemainingLives() {
+        for (index, lifeSprite) in lifeSprites.enumerate() {
+            let lifeNumber = index + 1
+            
+            if lifeNumber > currentNumberOfLives {
+                lifeSprite.texture = SKTexture(imageNamed: "heart-dead")
+                lifeSprite.removeActionForKey("animate")
+                lifeSprite.setScale(0.8)
+            }
+        }
+    }
     
     
     // MARK: Game actions
@@ -336,9 +387,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: Helper methods
     
-    func updateScore() {
-        scoreLabel.text = "Score: \(gameStats.calculateScore())"
-    }
+    
     
     func getBugSprite(named: String) -> SKSpriteNode {
         let bugSprite = SKSpriteNode(imageNamed: "\(named)-move-1")
@@ -351,7 +400,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             SKTexture(imageNamed: "\(named)-move-4"),
             SKTexture(imageNamed: "\(named)-move-3"),
             SKTexture(imageNamed: "\(named)-move-2")
-            ], timePerFrame: 0.1)
+        ], timePerFrame: 0.1)
         
         bugSprite.runAction(SKAction.repeatActionForever(animateAction), withKey: "animate")
         
