@@ -10,41 +10,67 @@ import SpriteKit
 
 class GameOverScene: SKScene {
     
-    var gameScore: Int!
+    let scoreManager = ScoreManager.sharedInstance
+    
+    var newScore: Int!
+    
+    let growAndShrink = SKAction.sequence([
+        SKAction.scaleBy(1.2, duration: 0.4),
+        SKAction.scaleBy(0.8333, duration: 0.4)
+    ])
     
     override func didMoveToView(view: SKView) {
-        let previousHighScore = getHighScore()
-                
-        storeHighScore(gameScore)
-        let currentHighScore = getHighScore()
-        
+        setGameOverState()
+        showNewGameButton()
+    }
+    
+    func setGameOverState() {
         backgroundColor = SKColor.blackColor()
         
-        let scoreLabel = SKLabelNode(fontNamed: "SanFrancisco")
+        let currentHighScore = scoreManager.getLocalHighScore()
         
-        if (currentHighScore > previousHighScore) {
-            scoreLabel.text = "New High Score: \(gameScore)!!"
-        } else {
-            scoreLabel.text = "Score: \(gameScore) High Score: \(currentHighScore)"
-        }
+        scoreManager.recordNewScore(newScore)
         
-        scoreLabel.fontSize = 30
+        let scoreLabel = SKLabelNode()
         scoreLabel.fontColor = SKColor.whiteColor()
-        scoreLabel.position = CGPoint(x: size.width / 2, y: size.height - 80)
+        scoreLabel.horizontalAlignmentMode = .Center
+        scoreLabel.fontSize = 30
+        scoreLabel.position = CGPoint(x: size.width/2, y: size.height - 60)
         addChild(scoreLabel)
         
-        let playAgainLabel = SKLabelNode(fontNamed: "SanFrancisco")
-        playAgainLabel.text = "Tap to Play Again"
-        playAgainLabel.fontSize = 50
-        playAgainLabel.verticalAlignmentMode = .Center
-        playAgainLabel.fontColor = SKColor.whiteColor()
-        playAgainLabel.position = CGPoint(x: size.width/2, y: size.height/2)
-        addChild(playAgainLabel)
-        
-        let growAction = SKAction.scaleBy(1.2, duration: 0.4)
-        let shrinkAction = SKAction.scaleBy(0.8333, duration: 0.4)
-        let growAndShrink = SKAction.sequence([growAction, shrinkAction])
-        playAgainLabel.runAction(SKAction.repeatActionForever(growAndShrink))
+        if newScore > currentHighScore {
+            scoreLabel.text = "New High Score \(newScore)!!"
+            let blinkAction = SKAction.sequence([
+                SKAction.fadeAlphaTo(0.4, duration: 0.4),
+                SKAction.fadeAlphaTo(1, duration: 0.4)
+            ])
+            scoreLabel.runAction(SKAction.repeatActionForever(blinkAction))
+        } else {
+            scoreLabel.text = "Score \(newScore)"
+        }
+    }
+    
+    func showNewGameButton() {
+        runAction(SKAction.sequence([
+            SKAction.waitForDuration(NSTimeInterval(0.3)),
+            SKAction.runBlock({
+                let playAgainLabel = SKLabelNode()
+                playAgainLabel.fontColor = SKColor.whiteColor()
+                playAgainLabel.text = "Tap to Play Again"
+                playAgainLabel.fontSize = 35
+                playAgainLabel.verticalAlignmentMode = .Center
+                playAgainLabel.position = CGPoint(x: self.size.width/2, y: self.size.height/2)
+                self.addChild(playAgainLabel)
+                
+                playAgainLabel.runAction(SKAction.repeatActionForever(self.growAndShrink))
+            })
+        ]))
+    }
+    
+    func startNewGame() {
+        let reveal = SKTransition.doorwayWithDuration(0.5)
+        let scene = GameScene(size: self.size)
+        self.view?.presentScene(scene, transition:reveal)
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -53,24 +79,5 @@ class GameOverScene: SKScene {
             let scene = GameScene(size: self.size)
             self.view?.presentScene(scene, transition:reveal)
         })
-    }
-    
-    func storeHighScore(score: Int) {
-        let defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()
-        
-        if (score > getHighScore()) {
-            defaults.setObject(score, forKey: "highScore")
-            defaults.synchronize()
-        }
-    }
-    
-    func getHighScore() -> Int {
-        let defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()
-
-        if let highScore = defaults.objectForKey("highScore") as? Int {
-            return highScore
-        }
-        
-        return 0
     }
 }

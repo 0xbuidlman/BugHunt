@@ -13,6 +13,12 @@ class GameViewController: UIViewController {
     
     let sceneFixedHeight:CGFloat = 375
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        ScoreManager.sharedInstance.authenticateLocalPlayer(self)
+    }
+    
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         
