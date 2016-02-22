@@ -33,7 +33,7 @@ class GameViewController: UIViewController {
                 
                 skView.showsFPS = true
                 skView.showsNodeCount = true
-                skView.showsPhysics = true
+                //skView.showsPhysics = true
                 skView.ignoresSiblingOrder = true
                 
                 scene.scaleMode = .AspectFit
