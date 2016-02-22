@@ -22,17 +22,11 @@ class GameViewController: UIViewController {
                 // Create the scene
                 let screenAspectRatio = skView.bounds.size.width / skView.bounds.size.height
                 let sceneSize = CGSize(width: sceneFixedHeight * screenAspectRatio, height: sceneFixedHeight)
-//                let sceneAspectRatio = sceneSize.width / sceneSize.height
-                
-//                print("Screen Size: \(skView.bounds.size)")
-//                print("Screen Aspect Ratio: \(screenAspectRatio)")
-//                print("Scene Size: \(sceneSize)")
-//                print("Scene Aspect Ratio: \(sceneAspectRatio)")
                 
                 let scene = GameScene(size: sceneSize)
                 
-                skView.showsFPS = true
-                skView.showsNodeCount = true
+                //skView.showsFPS = true
+                //skView.showsNodeCount = true
                 //skView.showsPhysics = true
                 skView.ignoresSiblingOrder = true
                 

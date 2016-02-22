@@ -23,6 +23,7 @@ enum Layer: CGFloat {
     case Web
     case Player
     case Bug
+    case HudBackground
     case Hud
 }
 
@@ -97,6 +98,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var lifeSprites = [SKSpriteNode]()
     let MaxNumberOfLives = 3
     var currentNumberOfLives = 0
+    
+    let hudBackgroundHeight: CGFloat = 30
 
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
@@ -105,7 +108,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         setupLayout()
         
         let screenPadding = 25
-        bugPositionRandom = GKRandomDistribution(lowestValue: screenPadding, highestValue: Int(size.height) - screenPadding)
+        bugPositionRandom = GKRandomDistribution(lowestValue: screenPadding, highestValue: Int(size.height) - screenPadding - Int(hudBackgroundHeight))
         
         startGame()
     }
@@ -171,23 +174,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func addHud() {
+        addHudBackground()
         addScoreLabel()
         addLivesNode()
     }
+    
+    func addHudBackground() {
+        let hudBackground = SKShapeNode(rectOfSize: CGSize(width: size.width, height: hudBackgroundHeight))
+        hudBackground.position = CGPoint(x: size.width/2, y: size.height - (hudBackgroundHeight / 2))
+        hudBackground.lineWidth = 0
+        hudBackground.fillColor = SKColor(red: 79/255, green: 59/255, blue: 39/255, alpha: 0.95)
+        hudBackground.zPosition = Layer.HudBackground.rawValue
+        
+        addChild(hudBackground)
+    }
 
     func addScoreLabel() {
-        scoreLabel = SKLabelNode()
-        scoreLabel.text = "Score: 0"
+        scoreLabel = SKLabelNode(text: "Score: 0")
         scoreLabel.horizontalAlignmentMode = .Left
-        scoreLabel.fontSize = 25
+        scoreLabel.fontSize = 20
         scoreLabel.fontColor = SKColor.blackColor()
-        scoreLabel.position = CGPoint(x: 10, y: size.height - 35)
+        scoreLabel.position = CGPoint(x: 10, y: size.height - 23)
         scoreLabel.zPosition = Layer.Hud.rawValue
         addChild(scoreLabel)
     }
     
     func addLivesNode() {
-        let livesContainer = SKNode()
+        let livesContainer = SKSpriteNode()
         livesContainer.name = "lives-container"
         
         for lifeNumber in 1...MaxNumberOfLives {
@@ -207,7 +220,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         livesContainer.zPosition = Layer.Hud.rawValue
-        livesContainer.position = CGPoint(x: size.width / 2, y: size.height - 20)
+        livesContainer.position = CGPoint(x: size.width / 2, y: size.height - 15)
         
         addChild(livesContainer)
     }
