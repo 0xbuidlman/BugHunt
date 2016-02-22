@@ -118,8 +118,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addBackground()
         addBackgroundDetail()
         addPlayer()
-        addScoreLabel()
-        addLivesNode()
+        addHud()
     }
     
     func addBackground() {
@@ -170,6 +169,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         addChild(player)
     }
+    
+    func addHud() {
+        addScoreLabel()
+        addLivesNode()
+    }
 
     func addScoreLabel() {
         scoreLabel = SKLabelNode()
@@ -189,18 +193,21 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for lifeNumber in 1...MaxNumberOfLives {
             let lifeSprite = SKSpriteNode(imageNamed: "heart")
             lifeSprite.name = "life-\(lifeNumber)"
-            lifeSprite.anchorPoint = CGPoint(x: 0, y: 1)
-            lifeSprite.position = CGPoint(x: (lifeSprite.size.width + 5) * CGFloat(lifeNumber), y: 0)
+            
+            let lifeSpriteXPos = (lifeSprite.size.width + 5) * CGFloat(lifeNumber)
+            
+            lifeSprite.position = CGPoint(x: lifeSpriteXPos, y: 0)
             lifeSprite.runAction(SKAction.repeatActionForever(SKAction.sequence([
                 SKAction.scaleTo(0.8, duration: 0.5),
                 SKAction.scaleTo(1.0, duration: 0.5)
             ])), withKey: "animate")
             lifeSprites.append(lifeSprite)
+            
             livesContainer.addChild(lifeSprite)
         }
         
         livesContainer.zPosition = Layer.Hud.rawValue
-        livesContainer.position = CGPoint(x: size.width / 2, y: size.height - 5)
+        livesContainer.position = CGPoint(x: size.width / 2, y: size.height - 20)
         
         addChild(livesContainer)
     }
