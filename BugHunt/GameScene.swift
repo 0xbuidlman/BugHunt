@@ -72,8 +72,8 @@ struct GameStats {
     let pointPerKill = 5;
     let pointsPerShot = -1
     
-    func calculateScore() -> Int {
-        var score = 0
+    func calculateScore() -> Int64 {
+        var score: Int64 = 0
         
         score += bugsKilled * pointPerKill
         score += shotsFired * pointsPerShot

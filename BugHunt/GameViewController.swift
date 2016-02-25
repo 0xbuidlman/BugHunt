@@ -9,37 +9,51 @@
 import UIKit
 import SpriteKit
 
-class GameViewController: UIViewController {
-    
-    let sceneFixedHeight:CGFloat = 375
+class GameViewController: UIViewController, ScoreManagerFocusDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        ScoreManager.sharedInstance.authenticateLocalPlayer(self)
+        if let skView = self.view as? SKView {
+            
+            ScoreManager.sharedInstance.focusDelegate = self
+            ScoreManager.sharedInstance.authenticateLocalPlayer(self)
+            
+            //skView.showsFPS = true
+            //skView.showsNodeCount = true
+            //skView.showsPhysics = true
+            skView.ignoresSiblingOrder = true
+            
+            
+            let scene = getInitialScene()
+            skView.presentScene(scene)
+        }
     }
     
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
+    func getInitialScene() -> SKScene {
+        let scene = GameScene()
+        scene.size = getSceneSize()
+        scene.scaleMode = .AspectFit
+        return scene
+    }
+    
+    func getSceneSize() -> CGSize {
+        let sceneFixedHeight:CGFloat = 375
         
+        let screenAspectRatio = self.view.bounds.size.width / self.view.bounds.size.height
+        let sceneSize = CGSize(width: sceneFixedHeight * screenAspectRatio, height: sceneFixedHeight)
+        return sceneSize
+    }
+    
+    func scoreManagerWillTakeFocus() {
         if let skView = self.view as? SKView {
-            if skView.scene == nil {
-                
-                // Create the scene
-                let screenAspectRatio = skView.bounds.size.width / skView.bounds.size.height
-                let sceneSize = CGSize(width: sceneFixedHeight * screenAspectRatio, height: sceneFixedHeight)
-                
-                let scene = GameScene(size: sceneSize)
-                
-                //skView.showsFPS = true
-                //skView.showsNodeCount = true
-                //skView.showsPhysics = true
-                skView.ignoresSiblingOrder = true
-                
-                scene.scaleMode = .AspectFit
-                
-                skView.presentScene(scene)
-            }
+            skView.paused = true
+        }
+    }
+    
+    func scoreManagerDidResignFocus() {
+        if let skView = self.view as? SKView {
+            skView.paused = false
         }
     }
     

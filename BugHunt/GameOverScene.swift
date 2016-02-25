@@ -12,7 +12,7 @@ class GameOverScene: SKScene {
     
     let scoreManager = ScoreManager.sharedInstance
     
-    var newScore: Int!
+    var newScore: Int64!
     
     let growAndShrink = SKAction.sequence([
         SKAction.scaleBy(1.2, duration: 0.4),
@@ -27,7 +27,7 @@ class GameOverScene: SKScene {
     func setGameOverState() {
         backgroundColor = SKColor.blackColor()
         
-        let currentHighScore = scoreManager.getLocalHighScore()
+        let currentHighScore = scoreManager.getHighScore()
         
         scoreManager.recordNewScore(newScore)
         
@@ -46,7 +46,7 @@ class GameOverScene: SKScene {
             ])
             scoreLabel.runAction(SKAction.repeatActionForever(blinkAction))
         } else {
-            scoreLabel.text = "Score \(newScore)"
+            scoreLabel.text = "Score \(newScore). High Score is:  \(currentHighScore)"
         }
     }
     
