@@ -92,7 +92,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var gameStats = GameStats()
     
-    var bugPositionRandom: GKRandomDistribution!
+    var bugPositionRandom = GKRandomDistribution(lowestValue: 0, highestValue: 100)
     var bugTypeRandomSource = GKRandomSource()
     
     var lifeSprites = [SKSpriteNode]()
@@ -112,10 +112,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
         setupLayout()
-        
-        let screenPadding = 25
-        bugPositionRandom = GKRandomDistribution(lowestValue: screenPadding, highestValue: Int(size.height) - screenPadding - Int(hudBackgroundHeight))
-        
         startGame()
     }
     
@@ -290,7 +286,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         timeSinceLastBug += deltaTime
         
         if timeSinceLastBug > timeBetweenBugs {
-            addBug()
+            addNextBug()
             timeSinceLastBug -= timeBetweenBugs
         }
     }
@@ -298,13 +294,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: Game actions
     
-    func addBug() {
+    func addNextBug() {
         let bugType = BugType.random(bugTypeRandomSource)
+        let yLocationPercentage = bugPositionRandom.nextInt()
+        addBug(bugType, yLocationPercentage: CGFloat(yLocationPercentage))
+    }
+    
+    func addBug(bugType: BugType, yLocationPercentage: CGFloat) {
         let bug = getBugSprite(bugType.spriteName())
         
-        let yPosition = CGFloat(bugPositionRandom.nextInt())
-        let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: yPosition)
-        let endPosition = CGPoint(x: -bug.size.width / 2, y: yPosition)
+        let screenPadding:CGFloat = 25
+        let minValue:CGFloat = screenPadding
+        let maxValue:CGFloat = size.height - screenPadding - hudBackgroundHeight
+        
+        let bugYPosition = yLocationPercentage * (maxValue - minValue) / 100.0 + minValue
+        
+        let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: bugYPosition)
+        let endPosition = CGPoint(x: -bug.size.width / 2, y: bugYPosition)
         
         bug.position = startPosition
         bug.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
