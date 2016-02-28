@@ -100,6 +100,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var currentNumberOfLives = 0
     
     let hudBackgroundHeight: CGFloat = 30
+    
+    var isPlaying: Bool = false
+    var lastUpdateTime: NSTimeInterval = 0
+    
+    var timeBetweenBugs: NSTimeInterval = 0
+    var timeSinceLastBug: NSTimeInterval = 0
 
     override func didMoveToView(view: SKView) {
         physicsWorld.contactDelegate = self
@@ -193,36 +199,36 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel = SKLabelNode(text: "Score: 0")
         scoreLabel.horizontalAlignmentMode = .Left
         scoreLabel.fontSize = 20
-        scoreLabel.fontColor = SKColor.blackColor()
+        scoreLabel.fontColor = SKColor.whiteColor()
         scoreLabel.position = CGPoint(x: 10, y: size.height - 23)
         scoreLabel.zPosition = Layer.Hud.rawValue
         addChild(scoreLabel)
     }
     
     func addLivesNode() {
-        let livesContainer = SKSpriteNode()
-        livesContainer.name = "lives-container"
+        let livesLayer = SKNode()
+        livesLayer.zPosition = Layer.Hud.rawValue
         
         for lifeNumber in 1...MaxNumberOfLives {
             let lifeSprite = SKSpriteNode(imageNamed: "heart")
-            lifeSprite.name = "life-\(lifeNumber)"
             
-            let lifeSpriteXPos = (lifeSprite.size.width + 5) * CGFloat(lifeNumber)
+            let xPosition = size.width - ((lifeSprite.size.width + 5) * CGFloat(lifeNumber))
+            let yPosition = size.height - (lifeSprite.size.height / 2)
+            lifeSprite.position = CGPoint(x: xPosition, y: yPosition)
             
-            lifeSprite.position = CGPoint(x: lifeSpriteXPos, y: 0)
             lifeSprite.runAction(SKAction.repeatActionForever(SKAction.sequence([
                 SKAction.scaleTo(0.8, duration: 0.5),
                 SKAction.scaleTo(1.0, duration: 0.5)
             ])), withKey: "animate")
+            
             lifeSprites.append(lifeSprite)
             
-            livesContainer.addChild(lifeSprite)
+            livesLayer.addChild(lifeSprite)
         }
         
-        livesContainer.zPosition = Layer.Hud.rawValue
-        livesContainer.position = CGPoint(x: size.width / 2, y: size.height - 15)
+        lifeSprites = lifeSprites.reverse()
         
-        addChild(livesContainer)
+        addChild(livesLayer)
     }
     
     
@@ -231,13 +237,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func startGame() {
         currentNumberOfLives = MaxNumberOfLives
-        
-        runAction(SKAction.repeatActionForever(
-            SKAction.sequence([
-                SKAction.runBlock(addBug),
-                SKAction.waitForDuration(1)
-            ])
-        ), withKey: "spawn")
+        isPlaying = true
+        timeBetweenBugs = 2
     }
     
     func bugDidReachTarget() {
@@ -252,7 +253,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func gameOver() {
         // Stop new bugs from spawning
-        self.removeActionForKey("spawn")
+        isPlaying = false
+        //self.removeActionForKey("spawn")
         
         // Transition to Game Over Scene
         let gameOverScene = GameOverScene(size: self.size)
@@ -274,6 +276,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 lifeSprite.removeActionForKey("animate")
                 lifeSprite.setScale(0.8)
             }
+        }
+    }
+    
+    override func update(currentTime: NSTimeInterval) {
+        let deltaTime = lastUpdateTime > 0 ? currentTime - lastUpdateTime : 0
+        lastUpdateTime = currentTime
+        
+        if !isPlaying {
+            return;
+        }
+        
+        timeSinceLastBug += deltaTime
+        
+        if timeSinceLastBug > timeBetweenBugs {
+            addBug()
+            timeSinceLastBug -= timeBetweenBugs
         }
     }
     
