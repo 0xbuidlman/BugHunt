@@ -10,10 +10,10 @@ import SpriteKit
 import GameplayKit
 
 struct PhysicsCategory {
-    static let Spider:  UInt32 = 0
-    static let Bug:     UInt32 = 0b1
-    static let Web:     UInt32 = 0b10
-    static let None:    UInt32 = UInt32.max
+    static let None:    UInt32 = 0
+    static let Spider:  UInt32 = 0b1
+    static let Bug:     UInt32 = 0b10
+    static let Web:     UInt32 = 0b100    
 }
 
 enum Layer: CGFloat {
@@ -25,44 +25,6 @@ enum Layer: CGFloat {
     case Bug
     case HudBackground
     case Hud
-}
-
-enum BugType: Int {
-    case Ladybird, Fly, Wasp
-    
-    func spriteName() -> String {
-        switch self {
-        case .Ladybird:
-            return "ladybird"
-        case .Fly:
-            return "fly"
-        case .Wasp:
-            return "wasp"
-        }
-    }
-    
-    func speed() -> Double {
-        switch self {
-        case .Ladybird:
-            return 5
-        case .Fly:
-            return 4
-        case .Wasp:
-            return 3
-        }
-    }
-    
-    private static let _count: BugType.RawValue = {
-        var maxValue: Int = 0
-        while let _ = BugType(rawValue: ++maxValue) { }
-        return maxValue
-    }()
-    
-    static func random(randomSource: GKRandomSource) -> BugType {
-        let random = GKRandomDistribution(randomSource: randomSource, lowestValue: 0, highestValue: _count - 1)
-        let index = random.nextInt()
-        return BugType(rawValue: index)!
-    }
 }
 
 struct GameStats {
@@ -294,27 +256,52 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: Game actions
     
+    var bugsAdded:Int = 0
+    
     func addNextBug() {
-        let bugType = BugType.random(bugTypeRandomSource)
+        var bugType: BugType!
+        
+        var lives: Int = 1
+        switch bugsAdded / 10 {
+        case let x where x < 1:
+            lives = 1
+            bugType = BugType.Fly
+        case let x where x < 2:
+            lives = 2
+            bugType = BugType.Ladybird
+        case let x where x < 3:
+            lives = 3
+            bugType = BugType.Wasp
+        default:
+            lives = 4
+            bugType = BugType.random(bugTypeRandomSource)
+        }
+        
         let yLocationPercentage = bugPositionRandom.nextInt()
-        addBug(bugType, yLocationPercentage: CGFloat(yLocationPercentage))
+        addBug(bugType, yLocationPercentage: CGFloat(yLocationPercentage), lives: lives)
     }
     
-    func addBug(bugType: BugType, yLocationPercentage: CGFloat) {
-        let bug = getBugSprite(bugType.spriteName())
-        
+    func getScreenYPosition(yLocationPercentage: CGFloat) -> CGFloat {
         let screenPadding:CGFloat = 25
         let minValue:CGFloat = screenPadding
         let maxValue:CGFloat = size.height - screenPadding - hudBackgroundHeight
         
-        let bugYPosition = yLocationPercentage * (maxValue - minValue) / 100.0 + minValue
+        let yPosition = yLocationPercentage * (maxValue - minValue) / 100.0 + minValue
         
-        let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: bugYPosition)
-        let endPosition = CGPoint(x: -bug.size.width / 2, y: bugYPosition)
+        return yPosition
+    }
+    
+    func addBug(bugType: BugType, yLocationPercentage: CGFloat, lives: Int) {
+        let bug = BugSprite(bugType: bugType, lives: lives)
+        bug.zPosition = Layer.Bug.rawValue
         
+        let yPosition = getScreenYPosition(yLocationPercentage)
+        let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: yPosition)
+        let endPosition = CGPoint(x: -bug.size.width / 2, y: yPosition)
         bug.position = startPosition
-        bug.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
         
+        bug.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
+            
         bug.runAction(SKAction.sequence([
             SKAction.moveTo(endPosition, duration: bugType.speed()),
             SKAction.runBlock({
@@ -324,6 +311,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ]), withKey: "move")
         
         addChild(bug)
+        
+        bugsAdded++
     }
     
     func shootWebAtPoint(point: CGPoint) {
@@ -338,7 +327,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         web.physicsBody?.dynamic = false
         web.physicsBody?.categoryBitMask = PhysicsCategory.Web
         web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
-        web.physicsBody?.usesPreciseCollisionDetection = true
         
         web.zPosition = Layer.Web.rawValue
         web.setScale(0)
@@ -361,23 +349,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(web)
     }
     
-    func webDidCollideWithBug(web: SKSpriteNode, bug: SKSpriteNode) {
+    func webDidCollideWithBug(web: SKSpriteNode, bug: BugSprite) {
         gameStats.bugsKilled++
         updateScore()
         
         web.removeFromParent()
         
-        bug.removeActionForKey("animate")
-        bug.removeActionForKey("move")
-        bug.zPosition = Layer.DeadBug.rawValue
-        bug.texture = SKTexture(imageNamed: "\(bug.name!)-web")
-        bug.physicsBody = nil
-        
-        bug.runAction(SKAction.sequence([
-            SKAction.waitForDuration(3),
-            SKAction.fadeAlphaTo(0, duration: 1),
-            SKAction.removeFromParent()
-        ]))
+        bug.hit()
     }
     
     
@@ -424,39 +402,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
-        webDidCollideWithBug(web, bug: bug)
+        if let bugSprite = bug as? BugSprite {
+            webDidCollideWithBug(web, bug: bugSprite)
+        }
     }
     
     
     
     // MARK: Helper methods
-    
-    
-    
-    func getBugSprite(named: String) -> SKSpriteNode {
-        let bugSprite = SKSpriteNode(imageNamed: "\(named)-move-1")
-        bugSprite.name = named
-        
-        let animateAction = SKAction.animateWithTextures([
-            SKTexture(imageNamed: "\(named)-move-1"),
-            SKTexture(imageNamed: "\(named)-move-2"),
-            SKTexture(imageNamed: "\(named)-move-3"),
-            SKTexture(imageNamed: "\(named)-move-4"),
-            SKTexture(imageNamed: "\(named)-move-3"),
-            SKTexture(imageNamed: "\(named)-move-2")
-        ], timePerFrame: 0.1)
-        
-        bugSprite.runAction(SKAction.repeatActionForever(animateAction), withKey: "animate")
-        
-        bugSprite.physicsBody = SKPhysicsBody(circleOfRadius: bugSprite.size.height/2)
-        bugSprite.physicsBody?.dynamic = true
-        bugSprite.physicsBody?.categoryBitMask = PhysicsCategory.Bug
-        bugSprite.physicsBody?.contactTestBitMask = PhysicsCategory.Web
-        
-        bugSprite.zPosition = Layer.Bug.rawValue
-        
-        return bugSprite
-    }
     
     func get(type: UInt32, fromContact: SKPhysicsContact) -> SKSpriteNode? {
         if fromContact.bodyA.categoryBitMask == type {
