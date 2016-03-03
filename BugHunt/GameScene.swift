@@ -51,9 +51,11 @@ struct GameStats {
 class GameScene: SKScene, SKPhysicsContactDelegate {
     var player: SKSpriteNode!
     var scoreLabel: SKLabelNode!
+    var levelLabel: SKLabelNode!
     
     var gameStats = GameStats()
-    
+
+    var arcRandom = GKRandomDistribution(lowestValue: -200, highestValue: 200)
     var bugPositionRandom = GKRandomDistribution(lowestValue: 0, highestValue: 100)
     var bugTypeRandomSource = GKRandomSource()
     
@@ -131,8 +133,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func addPlayer() {
         player = SKSpriteNode(imageNamed: "spider")
         player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
-        player.anchorPoint = CGPoint(x: 0.34, y: 0.5)
+        player.anchorPoint = CGPoint(x: 0.5, y: 0.375)
         player.zPosition = Layer.Player.rawValue
+        player.zRotation = degToRad(-90)
 
         addChild(player)
     }
@@ -140,6 +143,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func addHud() {
         addHudBackground()
         addScoreLabel()
+        addLevelLabel()
         addLivesNode()
     }
     
@@ -154,13 +158,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
 
     func addScoreLabel() {
-        scoreLabel = SKLabelNode(text: "Score: 0")
+        scoreLabel = SKLabelNode(fontNamed: "ChalkboardSE-Light")
+        scoreLabel.text = "Score: 0"
         scoreLabel.horizontalAlignmentMode = .Left
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = SKColor.whiteColor()
         scoreLabel.position = CGPoint(x: 10, y: size.height - 23)
         scoreLabel.zPosition = Layer.Hud.rawValue
         addChild(scoreLabel)
+    }
+
+    func addLevelLabel() {
+        levelLabel = SKLabelNode(fontNamed: "ChalkboardSE-Light")
+        levelLabel.text = "Level: 1"
+        levelLabel.fontSize = 20
+        levelLabel.fontColor = SKColor.whiteColor()
+        levelLabel.position = CGPoint(x: size.width/2, y: size.height - 23)
+        levelLabel.zPosition = Layer.Hud.rawValue
+        addChild(levelLabel)
     }
     
     func addLivesNode() {
@@ -299,11 +314,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: yPosition)
         let endPosition = CGPoint(x: -bug.size.width / 2, y: yPosition)
         bug.position = startPosition
-        
-        bug.constraints = [SKConstraint.orientToPoint(endPosition, offset: SKRange(constantValue: 0))]
+
+        let path = UIBezierPath()
+        path.moveToPoint(startPosition)
+        let controlPoint1 = CGPoint(x: size.width/2, y: startPosition.y + CGFloat(arcRandom.nextInt()))
+        let controlPoint2 = CGPoint(x: size.width/2, y: startPosition.y + CGFloat(arcRandom.nextInt()))
+        path.addCurveToPoint(endPosition, controlPoint1: controlPoint1, controlPoint2: controlPoint2)
+        //path.addLineToPoint(endPosition)
+
             
         bug.runAction(SKAction.sequence([
-            SKAction.moveTo(endPosition, duration: bugType.speed()),
+            SKAction.followPath(path.CGPath, asOffset: false, orientToPath: true, speed: bugType.speed()),
             SKAction.runBlock({
                 self.bugDidReachTarget()
             }),
@@ -357,7 +378,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         bug.hit()
     }
-    
+
+    func degToRad(deg: CGFloat) -> CGFloat {
+        return CGFloat(deg * CGFloat(M_PI/180.0))
+    }
     
     
     // MARK: Player input
@@ -369,7 +393,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))]
+        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
     }
     
     override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -379,7 +403,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))]
+        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
     }
     
     override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
@@ -389,7 +413,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let touchLocation = touch.locationInNode(self)
         
-        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: 0))]
+        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
         shootWebAtPoint(touchLocation)
     }
 

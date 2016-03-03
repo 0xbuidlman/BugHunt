@@ -31,10 +31,10 @@ class GameViewController: UIViewController, ScoreManagerFocusDelegate {
     }
     
     func getInitialScene() -> SKScene {
-        let scene = GameScene()
-        scene.size = getSceneSize()
-        scene.scaleMode = .AspectFit
-        return scene
+        let startScene = StartScene(fileNamed: "StartScene")!
+        startScene.size = getSceneSize()
+        startScene.scaleMode = .AspectFit
+        return startScene
     }
     
     func getSceneSize() -> CGSize {

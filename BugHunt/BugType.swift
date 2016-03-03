@@ -23,14 +23,14 @@ enum BugType: Int {
         }
     }
     
-    func speed() -> Double {
+    func speed() -> CGFloat {
         switch self {
         case .Ladybird:
-            return 5
+            return 150
         case .Fly:
-            return 4
+            return 100
         case .Wasp:
-            return 3
+            return 200
         }
     }
     
