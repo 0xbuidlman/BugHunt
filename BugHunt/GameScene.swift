@@ -55,7 +55,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var gameStats = GameStats()
 
-    var arcRandom = GKRandomDistribution(lowestValue: -200, highestValue: 200)
+    var pathSegmentsRandom = GKRandomDistribution(lowestValue: 3, highestValue: 5)
+    var arcRandom = GKRandomDistribution(lowestValue: -100, highestValue: 100)
     var bugPositionRandom = GKRandomDistribution(lowestValue: 0, highestValue: 100)
     var bugTypeRandomSource = GKRandomSource()
     
@@ -315,18 +316,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let endPosition = CGPoint(x: -bug.size.width / 2, y: yPosition)
         bug.position = startPosition
 
-        let path = UIBezierPath()
-        path.moveToPoint(startPosition)
-        let controlPoint1 = CGPoint(x: size.width/2, y: startPosition.y + CGFloat(arcRandom.nextInt()))
-        let controlPoint2 = CGPoint(x: size.width/2, y: startPosition.y + CGFloat(arcRandom.nextInt()))
-        path.addCurveToPoint(endPosition, controlPoint1: controlPoint1, controlPoint2: controlPoint2)
-        //path.addLineToPoint(endPosition)
-
-            
+        let movePath = getPath(startPosition, toPoint: endPosition)
+        
+        let drawPath = SKShapeNode(path: movePath)
+        drawPath.zPosition = Layer.Hud.rawValue
+        drawPath.strokeColor = SKColor.redColor()
+        self.addChild(drawPath)
+        
         bug.runAction(SKAction.sequence([
-            SKAction.followPath(path.CGPath, asOffset: false, orientToPath: true, speed: bugType.speed()),
+            SKAction.followPath(movePath, asOffset: false, orientToPath: true, speed: bugType.speed()),
             SKAction.runBlock({
-                self.bugDidReachTarget()
+                //self.bugDidReachTarget()
+                drawPath.removeFromParent()
             }),
             SKAction.removeFromParent()
         ]), withKey: "move")
@@ -334,6 +335,44 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(bug)
         
         bugsAdded++
+    }
+    
+    func getPath(fromPoint: CGPoint, toPoint: CGPoint) -> CGPath {
+        
+        let screenPadding:CGFloat = 25
+        let minValue:CGFloat = screenPadding
+        let maxValue:CGFloat = size.height - screenPadding - hudBackgroundHeight
+        
+        
+        let path = UIBezierPath()
+        path.lineJoinStyle = .Bevel
+        
+        path.moveToPoint(fromPoint)
+        
+        let pathWidth = fromPoint.x - toPoint.x
+        
+        let numberOfPoints: Int = pathSegmentsRandom.nextInt()
+        let distancePerPoint: CGFloat = pathWidth / CGFloat(numberOfPoints)
+        
+        for i in 1...numberOfPoints {
+            let pointOffset = CGFloat(arcRandom.nextInt())
+            var stopPoint: CGPoint = CGPoint(x: fromPoint.x - (distancePerPoint * CGFloat(i)), y: fromPoint.y + pointOffset)
+            
+            if stopPoint.y < minValue {
+                stopPoint.y = minValue
+            } else if stopPoint.y > maxValue {
+                stopPoint.y = maxValue
+            }
+            
+            //let controlPoint = CGPoint(x: stopPoint.x, y: stopPoint.y + curveOffset)
+            //path.addQuadCurveToPoint(stopPoint, controlPoint: controlPoint)
+            
+            path.addLineToPoint(stopPoint)
+        }
+        
+        
+        
+        return path.CGPath
     }
     
     func shootWebAtPoint(point: CGPoint) {
