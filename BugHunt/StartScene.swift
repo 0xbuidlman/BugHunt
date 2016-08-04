@@ -10,7 +10,7 @@ import SpriteKit
 
 class StartScene: SKScene {
 
-    override func didMoveToView(view: SKView) {
+    override func didMove(to view: SKView) {
         animateScene()
     }
 
@@ -22,29 +22,29 @@ class StartScene: SKScene {
 
     func animatePlayButton() {
         let growAndShrink = SKAction.sequence([
-            SKAction.scaleBy(1.2, duration: 0.4),
-            SKAction.scaleBy(0.8333, duration: 0.4)
+            SKAction.scale(by: 1.2, duration: 0.4),
+            SKAction.scale(by: 0.8333, duration: 0.4)
         ])
 
-        let playButton = childNodeWithName("play-button")
-        playButton?.runAction(SKAction.repeatActionForever(growAndShrink))
+        let playButton = childNode(withName: "play-button")
+        playButton?.run(SKAction.repeatForever(growAndShrink))
     }
 
     func animateBugs() {
-        enumerateChildNodesWithName("fly") { (placeholderNode, _) -> Void in
-            self.animateBug(BugType.Fly, inPlaceOf: placeholderNode)
+        enumerateChildNodes(withName: "fly") { (placeholderNode, _) -> Void in
+            self.animateBug(BugType.fly, inPlaceOf: placeholderNode)
         }
 
-        enumerateChildNodesWithName("ladybird") { (placeholderNode, _) -> Void in
-            self.animateBug(BugType.Ladybird, inPlaceOf: placeholderNode)
+        enumerateChildNodes(withName: "ladybird") { (placeholderNode, _) -> Void in
+            self.animateBug(BugType.ladybird, inPlaceOf: placeholderNode)
         }
 
-        enumerateChildNodesWithName("wasp") { (placeholderNode, _) -> Void in
-            self.animateBug(BugType.Wasp, inPlaceOf: placeholderNode)
+        enumerateChildNodes(withName: "wasp") { (placeholderNode, _) -> Void in
+            self.animateBug(BugType.wasp, inPlaceOf: placeholderNode)
         }
     }
 
-    func animateBug(bugType: BugType, inPlaceOf: SKNode) {
+    func animateBug(_ bugType: BugType, inPlaceOf: SKNode) {
         let bug = BugSprite(bugType: bugType, lives: 1)
         bug.position = inPlaceOf.position
         bug.zRotation = inPlaceOf.zRotation
@@ -58,58 +58,58 @@ class StartScene: SKScene {
 //        drawPath.strokeColor = SKColor.redColor()
 //        self.addChild(drawPath)
 
-        var moveAction = SKAction.followPath(movePath, asOffset: false, orientToPath: true, speed: bugType.speed())
+        var moveAction = SKAction.follow(movePath, asOffset: false, orientToPath: true, speed: bugType.speed())
 
-        if bugType == BugType.Ladybird {
-            moveAction = moveAction.reversedAction()
+        if bugType == BugType.ladybird {
+            moveAction = moveAction.reversed()
         }
 
-        bug.runAction(SKAction.repeatActionForever(moveAction))
+        bug.run(SKAction.repeatForever(moveAction))
     }
 
-    func degToRad(deg: CGFloat) -> CGFloat {
+    func degToRad(_ deg: CGFloat) -> CGFloat {
         return CGFloat(deg * CGFloat(M_PI/180.0))
     }
 
     func animateSpider() {
-        if let spider = childNodeWithName("spider") as? SKSpriteNode {
-            spider.runAction(SKAction.repeatActionForever(SKAction.sequence([
-                SKAction.waitForDuration(1),
-                SKAction.rotateToAngle(degToRad(90), duration: 0.5),
-                SKAction.waitForDuration(1),
-                SKAction.rotateToAngle(degToRad(300), duration: 0.5),
-                SKAction.waitForDuration(1),
-                SKAction.rotateToAngle(degToRad(180), duration: 0.5),
-                SKAction.waitForDuration(1),
-                SKAction.rotateToAngle(degToRad(240), duration: 0.5)
+        if let spider = childNode(withName: "spider") as? SKSpriteNode {
+            spider.run(SKAction.repeatForever(SKAction.sequence([
+                SKAction.wait(forDuration: 1),
+                SKAction.rotate(toAngle: degToRad(90), duration: 0.5),
+                SKAction.wait(forDuration: 1),
+                SKAction.rotate(toAngle: degToRad(300), duration: 0.5),
+                SKAction.wait(forDuration: 1),
+                SKAction.rotate(toAngle: degToRad(180), duration: 0.5),
+                SKAction.wait(forDuration: 1),
+                SKAction.rotate(toAngle: degToRad(240), duration: 0.5)
             ])))
         }
     }
 
-    func getPath(position: CGPoint) -> CGPath {
+    func getPath(_ position: CGPoint) -> CGPath {
         let pathWidth:CGFloat = 250
         let pathHeight:CGFloat = 250
 
         let rect = CGRect(x: (position.x - (pathWidth/2)), y: (position.y - (pathHeight/2)), width: pathWidth, height: pathHeight)
-        let path = UIBezierPath(ovalInRect: rect)
-        return path.CGPath
+        let path = UIBezierPath(ovalIn: rect)
+        return path.cgPath
     }
 
     func startNewGame() {
         let scene = GameScene()
         scene.size = self.size
         scene.scaleMode = self.scaleMode
-        self.view?.presentScene(scene, transition: SKTransition.fadeWithDuration(0.5))
+        self.view?.presentScene(scene, transition: SKTransition.fade(withDuration: 0.5))
     }
 
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
 
-        let touchLocation = touch.locationInNode(self)
+        let touchLocation = touch.location(in: self)
 
-        nodesAtPoint(touchLocation).forEach { (node) -> () in
+        nodes(at: touchLocation).forEach { (node) -> () in
             if node.name == "play-button" {
                 startNewGame()
             }

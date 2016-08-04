@@ -33,7 +33,7 @@ class GameViewController: UIViewController, ScoreManagerFocusDelegate {
     func getInitialScene() -> SKScene {
         let startScene = StartScene(fileNamed: "StartScene")!
         startScene.size = getSceneSize()
-        startScene.scaleMode = .AspectFit
+        startScene.scaleMode = .aspectFit
         return startScene
     }
     
@@ -47,13 +47,13 @@ class GameViewController: UIViewController, ScoreManagerFocusDelegate {
     
     func scoreManagerWillTakeFocus() {
         if let skView = self.view as? SKView {
-            skView.paused = true
+            skView.isPaused = true
         }
     }
     
     func scoreManagerDidResignFocus() {
         if let skView = self.view as? SKView {
-            skView.paused = false
+            skView.isPaused = false
         }
     }
     

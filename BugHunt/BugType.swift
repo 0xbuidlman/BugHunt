@@ -10,37 +10,37 @@ import SpriteKit
 import GameplayKit
 
 enum BugType: Int {
-    case Ladybird, Fly, Wasp
+    case ladybird, fly, wasp
     
     func typeName() -> String {
         switch self {
-        case .Ladybird:
+        case .ladybird:
             return "ladybird"
-        case .Fly:
+        case .fly:
             return "fly"
-        case .Wasp:
+        case .wasp:
             return "wasp"
         }
     }
     
     func speed() -> CGFloat {
         switch self {
-        case .Ladybird:
+        case .ladybird:
             return 150
-        case .Fly:
+        case .fly:
             return 100
-        case .Wasp:
+        case .wasp:
             return 200
         }
     }
     
     private static let _count: BugType.RawValue = {
         var maxValue: Int = 0
-        while let _ = BugType(rawValue: ++maxValue) { }
+        while let _ = BugType(rawValue: maxValue) { maxValue += 1 }
         return maxValue
     }()
     
-    static func random(randomSource: GKRandomSource) -> BugType {
+    static func random(_ randomSource: GKRandomSource) -> BugType {
         let random = GKRandomDistribution(randomSource: randomSource, lowestValue: 0, highestValue: _count - 1)
         let index = random.nextInt()
         return BugType(rawValue: index)!

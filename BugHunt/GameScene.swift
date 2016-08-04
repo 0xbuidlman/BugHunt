@@ -17,14 +17,14 @@ struct PhysicsCategory {
 }
 
 enum Layer: CGFloat {
-    case Background
-    case BackgroundDetail
-    case DeadBug
-    case Web
-    case Player
-    case Bug
-    case HudBackground
-    case Hud
+    case background
+    case backgroundDetail
+    case deadBug
+    case web
+    case player
+    case bug
+    case hudBackground
+    case hud
 }
 
 struct GameStats {
@@ -67,12 +67,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     let hudBackgroundHeight: CGFloat = 30
     
     var isPlaying: Bool = false
-    var lastUpdateTime: NSTimeInterval = 0
+    var lastUpdateTime: TimeInterval = 0
     
-    var timeBetweenBugs: NSTimeInterval = 0
-    var timeSinceLastBug: NSTimeInterval = 0
+    var timeBetweenBugs: TimeInterval = 0
+    var timeSinceLastBug: TimeInterval = 0
 
-    override func didMoveToView(view: SKView) {
+    override func didMove(to view: SKView) {
         physicsWorld.contactDelegate = self
         physicsWorld.gravity = CGVector(dx: 0, dy: 0)
         
@@ -96,7 +96,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let grassSprite = SKSpriteNode(imageNamed: "grass")
         grassSprite.anchorPoint = CGPoint.zero
-        grassSprite.zPosition = Layer.Background.rawValue
+        grassSprite.zPosition = Layer.background.rawValue
                 
         let xBlocks = Int(size.width / grassSprite.size.width)
         let yBlocks = Int(size.height / grassSprite.size.height)
@@ -120,12 +120,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         for _ in 1...20 {
             let flower = SKSpriteNode(imageNamed: "flower")
-            flower.zPosition = Layer.BackgroundDetail.rawValue
+            flower.zPosition = Layer.backgroundDetail.rawValue
             flower.position = CGPoint(x: xPositionRandom.nextInt(), y: yPositionRandom.nextInt())
             addChild(flower)
             
             let daisy = SKSpriteNode(imageNamed: "daisy")
-            daisy.zPosition = Layer.BackgroundDetail.rawValue
+            daisy.zPosition = Layer.backgroundDetail.rawValue
             daisy.position = CGPoint(x: xPositionRandom.nextInt(), y: yPositionRandom.nextInt())
             addChild(daisy)
         }
@@ -135,7 +135,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         player = SKSpriteNode(imageNamed: "spider")
         player.position = CGPoint(x: size.width * 0.1, y: size.height * 0.5)
         player.anchorPoint = CGPoint(x: 0.5, y: 0.375)
-        player.zPosition = Layer.Player.rawValue
+        player.zPosition = Layer.player.rawValue
         player.zRotation = degToRad(-90)
 
         addChild(player)
@@ -149,11 +149,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func addHudBackground() {
-        let hudBackground = SKShapeNode(rectOfSize: CGSize(width: size.width, height: hudBackgroundHeight))
+        let hudBackground = SKShapeNode(rectOf: CGSize(width: size.width, height: hudBackgroundHeight))
         hudBackground.position = CGPoint(x: size.width/2, y: size.height - (hudBackgroundHeight / 2))
         hudBackground.lineWidth = 0
         hudBackground.fillColor = SKColor(red: 79/255, green: 59/255, blue: 39/255, alpha: 0.95)
-        hudBackground.zPosition = Layer.HudBackground.rawValue
+        hudBackground.zPosition = Layer.hudBackground.rawValue
         
         addChild(hudBackground)
     }
@@ -161,11 +161,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func addScoreLabel() {
         scoreLabel = SKLabelNode(fontNamed: "ChalkboardSE-Light")
         scoreLabel.text = "Score: 0"
-        scoreLabel.horizontalAlignmentMode = .Left
+        scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.fontSize = 20
-        scoreLabel.fontColor = SKColor.whiteColor()
+        scoreLabel.fontColor = SKColor.white()
         scoreLabel.position = CGPoint(x: 10, y: size.height - 23)
-        scoreLabel.zPosition = Layer.Hud.rawValue
+        scoreLabel.zPosition = Layer.hud.rawValue
         addChild(scoreLabel)
     }
 
@@ -173,15 +173,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         levelLabel = SKLabelNode(fontNamed: "ChalkboardSE-Light")
         levelLabel.text = "Level: 1"
         levelLabel.fontSize = 20
-        levelLabel.fontColor = SKColor.whiteColor()
+        levelLabel.fontColor = SKColor.white()
         levelLabel.position = CGPoint(x: size.width/2, y: size.height - 23)
-        levelLabel.zPosition = Layer.Hud.rawValue
+        levelLabel.zPosition = Layer.hud.rawValue
         addChild(levelLabel)
     }
     
     func addLivesNode() {
         let livesLayer = SKNode()
-        livesLayer.zPosition = Layer.Hud.rawValue
+        livesLayer.zPosition = Layer.hud.rawValue
         
         for lifeNumber in 1...MaxNumberOfLives {
             let lifeSprite = SKSpriteNode(imageNamed: "heart")
@@ -190,9 +190,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let yPosition = size.height - (lifeSprite.size.height / 2)
             lifeSprite.position = CGPoint(x: xPosition, y: yPosition)
             
-            lifeSprite.runAction(SKAction.repeatActionForever(SKAction.sequence([
-                SKAction.scaleTo(0.8, duration: 0.5),
-                SKAction.scaleTo(1.0, duration: 0.5)
+            lifeSprite.run(SKAction.repeatForever(SKAction.sequence([
+                SKAction.scale(to: 0.8, duration: 0.5),
+                SKAction.scale(to: 1.0, duration: 0.5)
             ])), withKey: "animate")
             
             lifeSprites.append(lifeSprite)
@@ -200,7 +200,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             livesLayer.addChild(lifeSprite)
         }
         
-        lifeSprites = lifeSprites.reverse()
+        lifeSprites = lifeSprites.reversed()
         
         addChild(livesLayer)
     }
@@ -216,7 +216,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func bugDidReachTarget() {
-        currentNumberOfLives--;
+        currentNumberOfLives -= 1;
         
         if currentNumberOfLives < 1 {
             self.gameOver()
@@ -233,7 +233,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Transition to Game Over Scene
         let gameOverScene = GameOverScene(size: self.size)
         gameOverScene.newScore = gameStats.calculateScore()
-        let transition = SKTransition.fadeWithColor(UIColor.blackColor(), duration: 0.5)
+        let transition = SKTransition.fade(with: UIColor.black(), duration: 0.5)
         self.view?.presentScene(gameOverScene, transition: transition)
     }
     
@@ -242,18 +242,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func updateRemainingLives() {
-        for (index, lifeSprite) in lifeSprites.enumerate() {
+        for (index, lifeSprite) in lifeSprites.enumerated() {
             let lifeNumber = index + 1
             
             if lifeNumber > currentNumberOfLives {
                 lifeSprite.texture = SKTexture(imageNamed: "heart-dead")
-                lifeSprite.removeActionForKey("animate")
+                lifeSprite.removeAction(forKey: "animate")
                 lifeSprite.setScale(0.8)
             }
         }
     }
     
-    override func update(currentTime: NSTimeInterval) {
+    override func update(_ currentTime: TimeInterval) {
         let deltaTime = lastUpdateTime > 0 ? currentTime - lastUpdateTime : 0
         lastUpdateTime = currentTime
         
@@ -281,13 +281,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         switch bugsAdded / 10 {
         case let x where x < 1:
             lives = 1
-            bugType = BugType.Fly
+            bugType = BugType.fly
         case let x where x < 2:
             lives = 2
-            bugType = BugType.Ladybird
+            bugType = BugType.ladybird
         case let x where x < 3:
             lives = 3
-            bugType = BugType.Wasp
+            bugType = BugType.wasp
         default:
             lives = 4
             bugType = BugType.random(bugTypeRandomSource)
@@ -297,7 +297,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addBug(bugType, yLocationPercentage: CGFloat(yLocationPercentage), lives: lives)
     }
     
-    func getScreenYPosition(yLocationPercentage: CGFloat) -> CGFloat {
+    func getScreenYPosition(_ yLocationPercentage: CGFloat) -> CGFloat {
         let screenPadding:CGFloat = 25
         let minValue:CGFloat = screenPadding
         let maxValue:CGFloat = size.height - screenPadding - hudBackgroundHeight
@@ -307,9 +307,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return yPosition
     }
     
-    func addBug(bugType: BugType, yLocationPercentage: CGFloat, lives: Int) {
+    func addBug(_ bugType: BugType, yLocationPercentage: CGFloat, lives: Int) {
         let bug = BugSprite(bugType: bugType, lives: lives)
-        bug.zPosition = Layer.Bug.rawValue
+        bug.zPosition = Layer.bug.rawValue
         
         let yPosition = getScreenYPosition(yLocationPercentage)
         let startPosition = CGPoint(x: size.width + bug.size.width / 2, y: yPosition)
@@ -319,13 +319,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let movePath = getPath(startPosition, toPoint: endPosition)
         
         let drawPath = SKShapeNode(path: movePath)
-        drawPath.zPosition = Layer.Hud.rawValue
-        drawPath.strokeColor = SKColor.redColor()
+        drawPath.zPosition = Layer.hud.rawValue
+        drawPath.strokeColor = SKColor.red()
         self.addChild(drawPath)
         
-        bug.runAction(SKAction.sequence([
-            SKAction.followPath(movePath, asOffset: false, orientToPath: true, speed: bugType.speed()),
-            SKAction.runBlock({
+        bug.run(SKAction.sequence([
+            SKAction.follow(movePath, asOffset: false, orientToPath: true, speed: bugType.speed()),
+            SKAction.run({
                 //self.bugDidReachTarget()
                 drawPath.removeFromParent()
             }),
@@ -334,10 +334,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         addChild(bug)
         
-        bugsAdded++
+        bugsAdded += 1
     }
     
-    func getPath(fromPoint: CGPoint, toPoint: CGPoint) -> CGPath {
+    func getPath(_ fromPoint: CGPoint, toPoint: CGPoint) -> CGPath {
         
         let screenPadding:CGFloat = 25
         let minValue:CGFloat = screenPadding
@@ -345,9 +345,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         
         let path = UIBezierPath()
-        path.lineJoinStyle = .Bevel
+        path.lineJoinStyle = .bevel
         
-        path.moveToPoint(fromPoint)
+        path.move(to: fromPoint)
         
         let pathWidth = fromPoint.x - toPoint.x
         
@@ -367,16 +367,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             //let controlPoint = CGPoint(x: stopPoint.x, y: stopPoint.y + curveOffset)
             //path.addQuadCurveToPoint(stopPoint, controlPoint: controlPoint)
             
-            path.addLineToPoint(stopPoint)
+            path.addLine(to: stopPoint)
         }
         
         
         
-        return path.CGPath
+        return path.cgPath
     }
     
-    func shootWebAtPoint(point: CGPoint) {
-        gameStats.shotsFired++
+    func shootWebAtPoint(_ point: CGPoint) {
+        gameStats.shotsFired += 1
         updateScore()
         
         
@@ -384,24 +384,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         web.position = player.position
         
         web.physicsBody = SKPhysicsBody(circleOfRadius: web.size.height/2)
-        web.physicsBody?.dynamic = false
+        web.physicsBody?.isDynamic = false
         web.physicsBody?.categoryBitMask = PhysicsCategory.Web
         web.physicsBody?.contactTestBitMask = PhysicsCategory.Bug
         
-        web.zPosition = Layer.Web.rawValue
+        web.zPosition = Layer.web.rawValue
         web.setScale(0)
         
         let webDestination = getTargetDestination(web.position, destinationPoint: point)
         
-        web.constraints = [SKConstraint.orientToPoint(webDestination, offset: SKRange(constantValue: 0))]
+        web.constraints = [SKConstraint.orient(to: webDestination, offset: SKRange(constantValue: 0))]
         
-        let animateWebAction = SKAction.scaleTo(1, duration: 0.1)
+        let animateWebAction = SKAction.scale(to: 1, duration: 0.1)
         let moveWebAction = SKAction.sequence([
-            SKAction.moveTo(webDestination, duration: 2.0),
+            SKAction.move(to: webDestination, duration: 2.0),
             SKAction.removeFromParent()
         ])
         
-        web.runAction(SKAction.group([
+        web.run(SKAction.group([
             animateWebAction,
             moveWebAction
         ]))
@@ -409,8 +409,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         addChild(web)
     }
     
-    func webDidCollideWithBug(web: SKSpriteNode, bug: BugSprite) {
-        gameStats.bugsKilled++
+    func webDidCollideWithBug(_ web: SKSpriteNode, bug: BugSprite) {
+        gameStats.bugsKilled += 1
         updateScore()
         
         web.removeFromParent()
@@ -418,45 +418,45 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         bug.hit()
     }
 
-    func degToRad(deg: CGFloat) -> CGFloat {
+    func degToRad(_ deg: CGFloat) -> CGFloat {
         return CGFloat(deg * CGFloat(M_PI/180.0))
     }
     
     
     // MARK: Player input
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
         
-        let touchLocation = touch.locationInNode(self)
+        let touchLocation = touch.location(in: self)
         
-        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
+        player.constraints = [SKConstraint.orient(to: touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
     }
     
-    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
         
-        let touchLocation = touch.locationInNode(self)
+        let touchLocation = touch.location(in: self)
         
-        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
+        player.constraints = [SKConstraint.orient(to: touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
     }
     
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = touches.first else {
             return
         }
         
-        let touchLocation = touch.locationInNode(self)
+        let touchLocation = touch.location(in: self)
         
-        player.constraints = [SKConstraint.orientToPoint(touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
+        player.constraints = [SKConstraint.orient(to: touchLocation, offset: SKRange(constantValue: degToRad(-90)))]
         shootWebAtPoint(touchLocation)
     }
 
-    func didBeginContact(contact: SKPhysicsContact) {
+    func didBegin(_ contact: SKPhysicsContact) {
         guard let web  = get(PhysicsCategory.Web, fromContact: contact) else {
             return
         }
@@ -474,7 +474,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // MARK: Helper methods
     
-    func get(type: UInt32, fromContact: SKPhysicsContact) -> SKSpriteNode? {
+    func get(_ type: UInt32, fromContact: SKPhysicsContact) -> SKSpriteNode? {
         if fromContact.bodyA.categoryBitMask == type {
             return getSpriteNode(fromContact.bodyA)
         }
@@ -485,7 +485,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return nil
     }
     
-    func getSpriteNode(physicsBody: SKPhysicsBody) -> SKSpriteNode? {
+    func getSpriteNode(_ physicsBody: SKPhysicsBody) -> SKSpriteNode? {
         if let spriteNode = physicsBody.node as? SKSpriteNode {
             return spriteNode
         }
@@ -493,7 +493,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return nil
     }
     
-    func getTargetDestination(startPoint: CGPoint, destinationPoint: CGPoint) -> CGPoint {
+    func getTargetDestination(_ startPoint: CGPoint, destinationPoint: CGPoint) -> CGPoint {
         let pointOffset = destinationPoint - startPoint
         let shootDirection = pointOffset.normalized()
         let shootDistance = shootDirection * 1000

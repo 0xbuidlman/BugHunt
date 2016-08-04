@@ -25,7 +25,7 @@ public class ScoreManager {
     
     // MARK: Authentication
     
-    public func authenticateLocalPlayer(viewController: UIViewController) {
+    public func authenticateLocalPlayer(_ viewController: UIViewController) {
         let localPlayer = GKLocalPlayer.localPlayer()
         
         var scoreManagerDidTakeFocus: Bool = false
@@ -38,7 +38,7 @@ public class ScoreManager {
                     scoreManagerDidTakeFocus = true
                 }
                 
-                viewController.presentViewController(GameCentreLoginViewController!, animated: true, completion: nil)
+                viewController.present(GameCentreLoginViewController!, animated: true, completion: nil)
                 
             } else {
                 if scoreManagerDidTakeFocus {
@@ -47,7 +47,7 @@ public class ScoreManager {
                     }
                 }
                 
-                if localPlayer.authenticated {
+                if localPlayer.isAuthenticated {
                     self.gameCentreEnabled = true
                     self.loadLeaderboardIdentifier(localPlayer)
                 } else {
@@ -57,8 +57,8 @@ public class ScoreManager {
         }
     }
 
-    private func loadLeaderboardIdentifier(player: GKLocalPlayer) {
-        player.loadDefaultLeaderboardIdentifierWithCompletionHandler({ (leaderboardIdentifier, error) -> Void in
+    private func loadLeaderboardIdentifier(_ player: GKLocalPlayer) {
+        player.loadDefaultLeaderboardIdentifier(completionHandler: { (leaderboardIdentifier, error) -> Void in
             if error != nil {
                 print("Failed to load default leaderboard \(leaderboardIdentifier) with error \(error)")
                 self.gameCentreEnabled = false
@@ -75,7 +75,7 @@ public class ScoreManager {
         
         localPlayerLeaderBoard.identifier = self.leaderboardIdentifier
         
-        localPlayerLeaderBoard.loadScoresWithCompletionHandler { (scores, error) -> Void in
+        localPlayerLeaderBoard.loadScores { (scores, error) -> Void in
             if let localPlayerGameCentreHighScore = localPlayerLeaderBoard.localPlayerScore {
                 if localPlayerGameCentreHighScore.value != self.getLocalHighScore() {
                     self.setLocalHighScore(localPlayerGameCentreHighScore.value)
@@ -88,7 +88,7 @@ public class ScoreManager {
     
     // MARK: Score Recording
     
-    public func recordNewScore(score: Int64) {
+    public func recordNewScore(_ score: Int64) {
         self.updateLocalHighScore(score)
         
         if self.gameCentreEnabled == true {
@@ -96,18 +96,18 @@ public class ScoreManager {
         }
     }
     
-    private func updateLocalHighScore(score: Int64) {
+    private func updateLocalHighScore(_ score: Int64) {
         if score > self.getLocalHighScore() {
             self.setLocalHighScore(score)
         }
     }
     
-    private func submitScoreToGameCentre(score: Int64) {
+    private func submitScoreToGameCentre(_ score: Int64) {
         if let leaderboardIdentifier = self.leaderboardIdentifier {
             let scoreToSubmit = GKScore(leaderboardIdentifier: leaderboardIdentifier)
             scoreToSubmit.value = Int64(score)
             
-            GKScore.reportScores([scoreToSubmit], withCompletionHandler: { (error: NSError?) -> Void in
+            GKScore.report([scoreToSubmit], withCompletionHandler: { (error: NSError?) -> Void in
                 if error != nil {
                     print(error!.localizedDescription)
                 }
@@ -127,18 +127,18 @@ public class ScoreManager {
     
     // MARK: Local Cache
     
-    private func setLocalHighScore(score: Int64) {
-        let defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()
+    private func setLocalHighScore(_ score: Int64) {
+        let defaults: UserDefaults = UserDefaults.standard
         
-        defaults.setObject(NSNumber(longLong: score), forKey: "highScore")
+        defaults.set(NSNumber(value: score), forKey: "highScore")
         defaults.synchronize()
     }
     
     private func getLocalHighScore() -> Int64 {
-        let defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()
+        let defaults: UserDefaults = UserDefaults.standard
         
-        if let highScore = defaults.objectForKey("highScore") as? NSNumber {
-            return highScore.longLongValue
+        if let highScore = defaults.object(forKey: "highScore") as? NSNumber {
+            return highScore.int64Value
         }
         
         return 0

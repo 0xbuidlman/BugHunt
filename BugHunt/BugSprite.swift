@@ -43,7 +43,7 @@ class BugSprite: SKSpriteNode {
         self.size = defaultTexture.size()
 
         // Animation Sequence
-        let animationSequence = SKAction.animateWithTextures([
+        let animationSequence = SKAction.animate(with: [
             SKTexture(imageNamed: "\(textureName)-move-1"),
             SKTexture(imageNamed: "\(textureName)-move-2"),
             SKTexture(imageNamed: "\(textureName)-move-3"),
@@ -52,11 +52,11 @@ class BugSprite: SKSpriteNode {
             SKTexture(imageNamed: "\(textureName)-move-2")
         ], timePerFrame: 0.1)
         
-        self.runAction(SKAction.repeatActionForever(animationSequence), withKey: "animate")
+        self.run(SKAction.repeatForever(animationSequence), withKey: "animate")
 
         // Physics Body
         self.physicsBody = SKPhysicsBody(circleOfRadius: defaultTexture.size().height/2)
-        self.physicsBody?.dynamic = true
+        self.physicsBody?.isDynamic = true
         self.physicsBody?.categoryBitMask = PhysicsCategory.Bug
         self.physicsBody?.collisionBitMask = PhysicsCategory.Bug
         self.physicsBody?.contactTestBitMask = PhysicsCategory.Web
@@ -93,26 +93,26 @@ class BugSprite: SKSpriteNode {
         
         // Draw red background
         let backgroundColour = UIColor(red: 255/255, green: 0/255, blue: 0/255, alpha:1)
-        CGContextSetFillColorWithColor(context, backgroundColour.CGColor)
-        CGContextFillRect(context, healthBarRect)
+        context?.setFillColor(backgroundColour.cgColor)
+        context?.fill(healthBarRect)
         
         // Draw health bar outline
         let borderColor = UIColor(red: 35.0/255, green: 28.0/255, blue: 40.0/255, alpha:1)
-        CGContextSetStrokeColorWithColor(context, borderColor.CGColor)
-        CGContextStrokeRectWithWidth(context, healthBarRect, 1)
+        context?.setStrokeColor(borderColor.cgColor)
+        context?.stroke(healthBarRect, width: 1)
         
         // Draw green for remaining health
         let fillColor = UIColor(red: 113.0/255, green: 202.0/255, blue: 53.0/255, alpha:1)
-        CGContextSetFillColorWithColor(context, fillColor.CGColor)
+        context?.setFillColor(fillColor.cgColor)
         let maxHealthWidth = healthBarRect.width - 1
         let healthwidth = (maxHealthWidth / CGFloat(self.maxLives)) * CGFloat(self.currentLives)
         let filledHealthBarRect = CGRect(x: 0.5 + (maxHealthWidth - healthwidth), y: 0.5, width: healthwidth, height: healthBarRect.height - 1)
-        CGContextFillRect(context, filledHealthBarRect)
+        context?.fill(filledHealthBarRect)
         
         let spriteImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         
-        return SKTexture(image: spriteImage)
+        return SKTexture(image: spriteImage!)
     }
     
     func hit() {
@@ -122,15 +122,15 @@ class BugSprite: SKSpriteNode {
     private func die() {
         healthBarNode?.removeFromParent()
         
-        self.removeActionForKey("animate")
-        self.removeActionForKey("move")
-        self.zPosition = Layer.DeadBug.rawValue
+        self.removeAction(forKey: "animate")
+        self.removeAction(forKey: "move")
+        self.zPosition = Layer.deadBug.rawValue
         self.texture = SKTexture(imageNamed: "\(self.bugType.typeName())-web")
         self.physicsBody = nil
         
-        self.runAction(SKAction.sequence([
-            SKAction.waitForDuration(3),
-            SKAction.fadeAlphaTo(0, duration: 0.5),
+        self.run(SKAction.sequence([
+            SKAction.wait(forDuration: 3),
+            SKAction.fadeAlpha(to: 0, duration: 0.5),
             SKAction.removeFromParent()
         ]))
     }
